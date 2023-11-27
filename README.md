@@ -1,2 +1,2 @@
 # Chess-Game
-chess simulator using raylib 
+chess simulator + gym using raylib 
