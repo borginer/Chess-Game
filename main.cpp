@@ -7,10 +7,12 @@ void LoadImages(vector<Image>&);
 void LoadTextures(vector<Image>&, vector<Texture2D>&);
 void ResizeImages(vector<Image>&);
 
+const int image_amount = OTHER_LAST;
+
 int main(){
     InitWindow(screenWidth, screenHeight, "Chess Simulator");
-    vector<Image> images(13);
-    vector<Texture2D> textures(13);
+    vector<Image> images(image_amount);
+    vector<Texture2D> textures(image_amount);
 
     LoadImages(images);
     ResizeImages(images);
@@ -18,24 +20,26 @@ int main(){
     Game g(textures);
 
     bool piece_pressed = false;
-    std::pair<int, int> from;
+    square from;
     int x, y;
 
     SetTargetFPS(60);
     // Main Game Loop
     while(!WindowShouldClose()){
         BeginDrawing();
-        
+
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             Vector2 pos = GetMousePosition();
             x = std::floor((pos.x - sideBarSize) / figureSize);
             y = std::floor((pos.y - sideBarSize) / figureSize);
             if(piece_pressed){
                 piece_pressed = false;
+                g.SetMarkedSquare({});
                 g.Move(from, {x, y});
             }
             else{
                 piece_pressed = true;
+                g.SetMarkedSquare({x, y});
                 from = {x, y};
             }
         }
@@ -68,6 +72,9 @@ void LoadImages(vector<Image>& images){
 
 void LoadTextures(vector<Image>& images, vector<Texture2D>& textures){
     for(int x = wKing; x != TYPES_LAST; ++x){
+        textures[x] = LoadTextureFromImage(images[x]);
+    }
+    for(int x = board_txt; x != OTHER_LAST; ++x){
         textures[x] = LoadTextureFromImage(images[x]);
     }
 }
