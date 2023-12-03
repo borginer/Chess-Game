@@ -1,94 +1,111 @@
 #include "game.hpp"
 
-int diagMove[] = {-9, -7, 7, 9}; 
-int horizMove[] = {-8, -1, 1, 8};
-int horseMove[] = {-17, -15, -10, -6, 6, 10, 15, 17};
+int diagonalMoves[] = {-9, -7, 7, 9}; 
+int horizontalMoves[] = {-8, -1, 1, 8};
+int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
 
 // checks indexing of input only
-bool checkPoint(square p);
+bool checkSquare(square s);
 
 
-Game::Game(std::vector<Texture2D>& textures){
-    this->textures = textures;
+Game::Game(){
     this->turn = white;
-    this->board = std::array<types, 64>();
+    this->board = std::array<piece, 64>();
     setup();
-}
-
-void Game::SetMarkedSquare(square s){
-    marked.x = s.x;
-    marked.y = s.y;
 }
 
 void Game::setup(){
     turn = white;
-    for(types& t: board) t = EMPTY_TYPE;
+    for(piece& t: board) t = {EMPTY_COLOR, EMPTY_TYPE};
     //rooks
-    board[0] = bRook; board[7] = bRook;
-    board[56] = wRook; board[63] = wRook;
+    board[0] = {black, rook}; board[7] = {black, rook};
+    board[56] = {white, rook}; board[63] = {white, rook};
     //knights
-    board[1] = bKnight; board[6] = bKnight;
-    board[57] = wKnight; board[62] = wKnight;
+    board[1] = {black, knight}; board[6] = {black, knight};
+    board[57] = {white, knight}; board[62] = {white, knight};
     //bishops
-    board[2] = bBishop; board[5] = bBishop;
-    board[58] = wBishop; board[61] = wBishop;
+    board[2] = {black, bishop}; board[5] = {black, bishop};
+    board[58] = {white, bishop}; board[61] = {white, bishop};
     //queens
-    board[3] = bQueen; board[59] = wQueen;
+    board[3] = {black, queen}; board[59] = {white, queen};
     //kings
-    board[4] = bKing; board[60] = wKing;
+    board[4] = {black, king}; board[60] = {white, king};
     //pawns
-    for(int i = 8; i < 16; ++i) board[i] = bPawn;
-    for(int i = 48; i < 56; ++i) board[i] = wPawn;
-}
-
-void Game::DrawBoard(){
-    int index;        
-    DrawTexture(textures[board_txt], sideBarSize, sideBarSize, WHITE);
-    if(marked.x != -1) 
-        DrawRectangle(sideBarSize + marked.x * figureSize, sideBarSize + marked.y * figureSize, figureSize, figureSize, {255,0,0,130});
-    for(int row = 0; row < 8; ++row){
-        for(int col = 0; col < 8; ++col){
-            index = square{col, row}.getIdx();
-            if(board[index] != EMPTY_TYPE){
-                DrawTexture(textures[board[index]], sideBarSize + col * figureSize, sideBarSize + row * figureSize, WHITE);
-            }
-        }
-    }
+    for(int i = 8; i < 16; ++i) board[i] = {black, pawn};
+    for(int i = 48; i < 56; ++i) board[i] = {white, pawn};
 }
 
 void Game::Move(square from, square to){
-    if(!checkPoint(from) || !checkPoint(to) || from == to){
+    if(!checkSquare(from) || !checkSquare(to) || from == to){
         std::cout << "Invalid Square" << std::endl;
+        return;
+    }
+    if(!checkMove(from, to)){
+        std::cout << "Invalid Move" << std::endl;
         return;
     }
     int idx_from, idx_to;
     idx_from = from.getIdx();
     idx_to = to.getIdx();
     board[idx_to] = board[idx_from];
-    board[idx_from] = EMPTY_TYPE;
+    board[idx_from] = {EMPTY_COLOR, EMPTY_TYPE};
 }
 
-bool checkPoint(square p){
+bool Game::checkMove(square from, square to){
+    switch(board[from.getIdx()].t){
+        case pawn:
+            return true;
+            break;
+        case knight:
+            return checkKnightMove(from.getIdx(), to.getIdx());
+            break;
+        case bishop: 
+            return true;
+            break;
+        case rook:
+            return true;
+            break;
+        case queen:
+            return true;
+            break;
+        case king:
+            return true;
+            break;
+        case EMPTY_TYPE:
+            return false;
+            break;
+    }
+}
+
+bool Game::checkKnightMove(int from, int to){
+    if(board[from].c == board[to].c){return false;}
+    for(int x: knightMoves){
+        if(from + x == to){return true;}
+    }
+    return false;
+}
+
+bool checkSquare(square p){
     return !(p.x < 0 || p.x > 7 || p.y < 0 || p.y > 7);
 }
 
-std::vector<square> Game::legalMoves(square from){
-    std::vector<square> moves = {};
-    switch(board[from.getIdx()]){
-        case wPawn:   case bPawn:
-            break;
-        case wKnight: case bKnight:
-            break;
-        case wBishop: case bBishop:
-            break;
-        case wRook:   case bRook:
-            break;
-        case wQueen:  case bQueen:
-            break;
-        case wKing:   case bKing:
-            break;
-        case TYPES_LAST: case EMPTY_TYPE:
-            break;
-    }
-    return moves;
-}
+
+// std::vector<square> Game::legalMoves(square from){
+//     std::vector<square> moves = {};
+//         case pawn:
+//             break;
+//         case knight:
+//             break;
+//         case bishop: 
+//             break;
+//         case rook:
+//             break;
+//         case queen:
+//             break;
+//         case king:
+//             break;
+//         case EMPTY_TYPE:
+//             break;
+//     }
+//     return moves;
+// }

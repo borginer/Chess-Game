@@ -2,19 +2,22 @@
 #define GAME_HPP
 
 #include <vector>
-#include <raylib.h>
 #include <iostream>
 
-enum player{white = 1, black};
-enum types {wKing = 0, wQueen, wRook, wBishop, wKnight, wPawn,
-      bKing, bQueen, bRook, bBishop, bKnight, bPawn, TYPES_LAST, EMPTY_TYPE};
-enum other {board_txt = TYPES_LAST, OTHER_LAST};
+enum color {white = 0, black, EMPTY_COLOR};
+
+enum type {king = 0, queen, rook, bishop, knight, pawn, EMPTY_TYPE};
+
+enum other {board_txt = 0, EMPTY_OTHER};
 
 const int boardSize = 800;
 const int sideBarSize = 20;
 const int screenWidth = boardSize + 2 * sideBarSize;
 const int screenHeight = boardSize + 2 * sideBarSize;
 const int figureSize = boardSize / 8;
+
+using std::vector;
+using std::array;
 
 struct square{
     int x = -1, y = -1;
@@ -23,26 +26,45 @@ struct square{
         this->x = x;
         this->y = y;
     }
-    inline int getIdx() {return x + 8 * y;}
-    inline bool operator==(square& other){return this->x == other.x && this->y == other.y;}
+    inline int getIdx(){return x + 8 * y;}
+    inline bool operator==(square& other){
+        return this->x == other.x && this->y == other.y;
+    }
+};
+
+struct piece{
+    type t;
+    color c;
+    piece(){this->t = EMPTY_TYPE; this->c = EMPTY_COLOR;}
+    piece(color c, type t){
+        this->t = t;
+        this->c = c;
+    }
+    inline bool operator==(piece& other){
+        return this->c == other.c && this->t == other.t;
+    }
+    inline bool operator!=(piece& other){return !operator==(other);}
 };
 
 class Game{
 public:
-    Game(std::vector<Texture2D>&);
+    Game();
     // check legality 
     void Move(square, square);
-    void DrawBoard();
-    void SetMarkedSquare(square);
+    array<piece, 64> GetBoard(){return board;};
 private:
+    array<piece, 64> board;
+    color turn;
+
     //put all pieces in place
     void setup();
     // return all legal moves
-    std::vector<square> legalMoves(square from);
-    std::array<types, 64> board;
-    std::vector<Texture2D> textures;
-    square marked = {-1, -1};
-    player turn;
+    vector<square> legalMoves(square from);
+    bool checkMove(square from, square to);
+    inline bool onBoard(int idx){return idx > -1 && idx < 64;}
+    bool checkKnightMove(int from, int to);
+
+
 };
 
 #endif

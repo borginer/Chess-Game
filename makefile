@@ -8,8 +8,11 @@ RM= rm -rf *.o chess.exe
 chess.exe: main.o
 	$(CXX) $(CXXFLAGS) $(LIBRAYFLAGS) -L/usr/local/lib -lraylib $(OBJS) -o chess.exe 
 
-main.o: game.o main.cpp
+main.o: game.o graphics.o main.cpp
 	$(CXX) $(CXXFLAGS) -c main.cpp
+
+graphics.o: game.o graphics.hpp graphics.cpp
+	$(CXX) $(CXXFLAGS) -c graphics.cpp
 
 game.o: game.hpp game.cpp
 	$(CXX) $(CXXFLAGS) -c game.cpp
