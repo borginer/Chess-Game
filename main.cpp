@@ -1,7 +1,8 @@
 #include "raylib.h"
 #include <vector>
+#include <cmath>
 #include "game.hpp"
-#include "graphics.cpp"
+#include "graphics.hpp"
 
 using std::vector;
 

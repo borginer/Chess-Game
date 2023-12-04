@@ -4,10 +4,6 @@ int diagonalMoves[] = {-9, -7, 7, 9};
 int horizontalMoves[] = {-8, -1, 1, 8};
 int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
 
-// checks indexing of input only
-bool checkSquare(square s);
-
-
 Game::Game(){
     this->turn = white;
     this->board = std::array<piece, 64>();
@@ -36,7 +32,7 @@ void Game::setup(){
 }
 
 void Game::Move(square from, square to){
-    if(!checkSquare(from) || !checkSquare(to) || from == to){
+    if(!from.validBounds() || !to.validBounds() || from == to){
         std::cout << "Invalid Square" << std::endl;
         return;
     }
@@ -74,6 +70,8 @@ bool Game::checkMove(square from, square to){
         case EMPTY_TYPE:
             return false;
             break;
+        default:
+            return false;
     }
 }
 
@@ -84,11 +82,6 @@ bool Game::checkKnightMove(int from, int to){
     }
     return false;
 }
-
-bool checkSquare(square p){
-    return !(p.x < 0 || p.x > 7 || p.y < 0 || p.y > 7);
-}
-
 
 // std::vector<square> Game::legalMoves(square from){
 //     std::vector<square> moves = {};

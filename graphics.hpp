@@ -4,12 +4,13 @@
 #include "game.hpp"
 #include "raylib.h"
 #include <map>
+#include <vector>
 
 using std::vector;
 using std::map;
 
 const int pieces_amount = 12;
-piece EMPTY_PIECE = piece{EMPTY_COLOR, EMPTY_TYPE};
+
 
 class Graphics{
 public:

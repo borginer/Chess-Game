@@ -3,6 +3,10 @@
 
 #include <vector>
 #include <iostream>
+#include <array>
+
+using std::vector;
+using std::array;
 
 enum color {white = 0, black, EMPTY_COLOR};
 
@@ -16,9 +20,6 @@ const int screenWidth = boardSize + 2 * sideBarSize;
 const int screenHeight = boardSize + 2 * sideBarSize;
 const int figureSize = boardSize / 8;
 
-using std::vector;
-using std::array;
-
 struct square{
     int x = -1, y = -1;
     square() = default;
@@ -29,6 +30,10 @@ struct square{
     inline int getIdx(){return x + 8 * y;}
     inline bool operator==(square& other){
         return this->x == other.x && this->y == other.y;
+    }
+    // checks indexing of input only
+    inline bool validBounds(){
+        return !(x < 0 || x > 7 || y < 0 || y > 7);
     }
 };
 

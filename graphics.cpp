@@ -1,5 +1,7 @@
 #include "graphics.hpp"
 
+piece EMPTY_PIECE = piece{EMPTY_COLOR, EMPTY_TYPE};
+
 Graphics::Graphics(){
     vector<Image> piece_images = LoadPieceImages();
     this->piece_textures = LoadPieceTextures(piece_images);
@@ -80,6 +82,8 @@ void Graphics::ResizeImages(vector<Image>& images, int width, int height){
 }
 
 void Graphics::SetMarkedSquare(square s){
-    marked.x = s.x;
-    marked.y = s.y;
+    if(s.validBounds() || (s.x == -1 && s.y == -1)){
+        marked.x = s.x;
+        marked.y = s.y;
+    }
 }
