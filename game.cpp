@@ -1,17 +1,24 @@
 #include "game.hpp"
 
-int diagonalMoves[] = {-9, -7, 7, 9}; 
-int horizontalMoves[] = {-8, -1, 1, 8};
-int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
+static int diagonalMoves[] = {-9, -7, 7, 9}; 
+static int horizontalMoves[] = {-8, -1, 1, 8};
+static int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
+static int blackPawnMoves[] = {8, 0};
+static int whitePawnMoves[] = {-8, 0};
+static int blackPawnAttackMoves[] = {7, 9, 0};
+static int whitePawnAttackMoves[] = {-7, -9, 0};
+
 
 Game::Game(){
-    this->board = std::array<piece, 64>();
+    this->board = std::array<Piece, 64>();
     setup();
 }
 
-void Game::setup(){
+void Game::setup() {
     turn = white;
-    for(piece& p: board) p = {EMPTY_COLOR, EMPTY_TYPE};
+    for (Piece& p: board) {
+        p = {EMPTY_PIECE_COLOR, EMPTY_TYPE};
+    }
     //rooks
     board[0] = {black, rook}; board[7] = {black, rook};
     board[56] = {white, rook}; board[63] = {white, rook};
@@ -30,12 +37,12 @@ void Game::setup(){
     for(int i = 48; i < 56; ++i) board[i] = {white, pawn};
 }
 
-void Game::Move(square from, square to){
-    if(!from.validBounds() || !to.validBounds() || from == to){
+void Game::Move(square from, square to) {
+    if (!from.validBounds() || !to.validBounds() || from == to) {
         std::cout << "Invalid Square" << std::endl;
         return;
     }
-    if(!checkMove(from, to)){
+    if (!checkMove(from, to)) {
         std::cout << "Invalid Move" << std::endl;
         return;
     }
@@ -43,28 +50,39 @@ void Game::Move(square from, square to){
     idx_from = from.getIdx();
     idx_to = to.getIdx();
     board[idx_to] = board[idx_from];
-    board[idx_from] = {EMPTY_COLOR, EMPTY_TYPE};
+    board[idx_from] = {EMPTY_PIECE_COLOR, EMPTY_TYPE};
+    board[idx_to].moved = true;
+
+    if (turn == white) {
+        turn = black;
+    }
+    else {
+        turn = white;
+    }
 }
 
-bool Game::checkMove(square from, square to){
-    switch(board[from.getIdx()].t){
+bool Game::checkMove(square from, square to) {
+    if (!sameColor(board[from.getIdx()].color, turn)) {
+        return false;
+    }
+    switch (board[from.getIdx()].type) {
         case pawn:
-            return true;
+            return checkPawnMove(from.getIdx(), to.getIdx());
             break;
         case knight:
             return checkKnightMove(from.getIdx(), to.getIdx());
             break;
         case bishop: 
-            return true;
+            return checkBishopMove(from.getIdx(), to.getIdx());
             break;
         case rook:
-            return true;
+            return checkRookMove(from.getIdx(), to.getIdx());
             break;
         case queen:
-            return true;
+            return checkQueenMove(from.getIdx(), to.getIdx());
             break;
         case king:
-            return true;
+            return checkKingMove(from.getIdx(), to.getIdx());
             break;
         case EMPTY_TYPE:
             return false;
@@ -74,11 +92,93 @@ bool Game::checkMove(square from, square to){
     }
 }
 
-bool Game::checkKnightMove(int from, int to){
-    if(board[from].c == board[to].c){return false;}
-    for(int x: knightMoves){
-        if(from + x == to){return true;}
+bool Game::checkKnightMove(int from, int to) {
+    for (int jump: knightMoves) {
+        if (from + jump == to && !sameColor(from, to)) {
+            return true;
+        }
     }
+    return false;
+}
+
+bool Game::checkBishopMove(int from, int to) {
+    int idx;
+    for (int direct: diagonalMoves) {
+        idx = from;
+        while (onBoard(idx)) {
+            idx += direct;
+            if (idx == to && !sameColor(from, to)) {
+                return true;
+            }
+            if (board[idx].type != EMPTY_TYPE) {
+                break;
+            }
+        }
+    }
+    return false;
+}
+
+bool Game::checkRookMove(int from, int to) {
+    int idx;
+    for (int direct: horizontalMoves) {
+        idx = from;
+        while (onBoard(idx)) {
+            idx += direct;
+            if (idx == to && !sameColor(from, to)) {
+                return true;
+            }
+            if (board[idx].type != EMPTY_TYPE) {
+                break;
+            }
+        }
+    }
+    return false;
+}
+
+bool Game::checkQueenMove(int from, int to) {
+    return checkBishopMove(from, to) || checkRookMove(from, to);
+}
+
+bool Game::checkKingMove(int from, int to) {
+    for (int direct: diagonalMoves) {
+        if (from + direct == to && !sameColor(from, to)) {
+            return true;
+        }
+    }
+
+    for (int direct: horizontalMoves) {
+        if (from + direct == to && !sameColor(from, to)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Game::checkPawnMove(int from, int to) {
+    int* attack = board[from].color == white ? 
+         whitePawnAttackMoves : blackPawnAttackMoves;
+    int* move = board[from].color == white ?
+         whitePawnMoves : blackPawnMoves;
+
+    while (*attack) {
+        if (from + *attack == to && 
+        board[to].color != EMPTY_PIECE_COLOR && 
+        !sameColor(from, to)) {
+            return true;
+        }
+        attack++;
+    }
+
+    while (*move) {
+        if ((from + *move == to || 
+        ((from + 2 * (*move)) && !board[from].moved)) 
+        && !sameColor(from, to)) {
+            return true;
+        }
+        move++;
+    }
+
     return false;
 }
 

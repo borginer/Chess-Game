@@ -7,8 +7,8 @@ RM= rm -rf *.o chess
 
 #chess.exe: main.o
 #	$(CXX) $(CXXFLAGS) $(LIBRAYFLAGS) -L/usr/local/lib -lraylib $(OBJS) -o chess.exe 
-chess.exe: main.o
-	$(CXX) $(CXXFLAGS) $(OBJS) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o chess.exe
+chess: main.o
+	$(CXX) $(CXXFLAGS) $(OBJS) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o chess
 
 main.o: game.o graphics.o main.cpp
 	$(CXX) $(CXXFLAGS) -c main.cpp

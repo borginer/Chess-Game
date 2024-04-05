@@ -1,6 +1,6 @@
 #include "graphics.hpp"
 
-piece EMPTY_PIECE = piece{EMPTY_COLOR, EMPTY_TYPE};
+Piece EMPTY_PIECE = Piece{EMPTY_PIECE_COLOR, EMPTY_TYPE};
 
 Graphics::Graphics(){
     vector<Image> piece_images = LoadPieceImages();
@@ -10,9 +10,10 @@ Graphics::Graphics(){
 }
 
 void Graphics::DrawGame(const Game& game){
-    int index; piece p;
+    int index; 
+    Piece p;
     DrawTexture(other_textures[board_txt], sideBarSize, sideBarSize, WHITE);
-    array<piece, 64> board = game.GetBoard();
+    array<Piece, 64> board = game.GetBoard();
     if(MarkedSquare()) 
         DrawRectangle(sideBarSize + marked.x * figureSize, 
                       sideBarSize + marked.y * figureSize, 
@@ -22,7 +23,7 @@ void Graphics::DrawGame(const Game& game){
             index = square{col, row}.getIdx();
             p = board[index];
             if(p != EMPTY_PIECE){
-                DrawTexture(piece_textures[PieceIdx(p.c, p.t)], 
+                DrawTexture(piece_textures[PieceIdx(p.color, p.type)], 
                             sideBarSize + col * figureSize,
                             sideBarSize + row * figureSize, WHITE);
             }
@@ -32,7 +33,7 @@ void Graphics::DrawGame(const Game& game){
 
 vector<Texture2D> Graphics::LoadPieceTextures(vector<Image>& images){
     vector<Texture2D> textures(pieces_amount);
-    for(int color = white; color != EMPTY_COLOR; ++color){
+    for(int color = white; color != EMPTY_PIECE_COLOR; ++color){
         for(int type = king; type != EMPTY_TYPE; ++type){
             textures[PieceIdx(color, type)] = 
                 LoadTextureFromImage(images[(PieceIdx(color, type))]);

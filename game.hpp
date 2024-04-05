@@ -7,13 +7,13 @@
 
 using namespace std;
 
-enum color {
+enum PieceColor {
     white = 0,
     black,
-    EMPTY_COLOR
+    EMPTY_PIECE_COLOR
 };
 
-enum type {
+enum Type {
     king = 0,
     queen,
     rook,
@@ -23,7 +23,7 @@ enum type {
     EMPTY_TYPE
 };
 
-enum other {
+enum Other {
     board_txt = 0,
     EMPTY_OTHER
 };
@@ -52,18 +52,20 @@ struct square{
     }
 };
 
-struct piece{
-    type t;
-    color c;
-    piece(){this->t = EMPTY_TYPE; this->c = EMPTY_COLOR;}
-    piece(color c, type t){
-        this->t = t;
-        this->c = c;
+struct Piece{
+    Type type;
+    PieceColor color;
+    bool moved;
+    Piece(){this->type = EMPTY_TYPE; this->color = EMPTY_PIECE_COLOR;}
+    Piece(PieceColor c, Type t){
+        this->type = t;
+        this->color = c;
+        this->moved = false;
     }
-    inline bool operator==(piece& other){
-        return this->c == other.c && this->t == other.t;
+    inline bool operator==(Piece& other){
+        return this->color == other.color && this->type == other.type;
     }
-    inline bool operator!=(piece& other){return !operator==(other);}
+    inline bool operator!=(Piece& other){return !operator==(other);}
 };
 
 class Game{
@@ -71,19 +73,32 @@ public:
     Game();
     // check legality 
     void Move(square, square);
-    array<piece, 64> GetBoard() const {return board;};
+    array<Piece, 64> GetBoard() const {return board;};
 private:
-    array<piece, 64> board;
-    //array<set<const piece*>, 64> attack;
-    color turn;
-    //puts all pieces in place
+    array<Piece, 64> board;
+    //array<set<const Piece*>, 64> attack;
+    PieceColor turn;
+    //puts all Pieces in place
     void setup();
     // returns all legal moves
     vector<square> legalMoves(square from);
     // check if the move is legal
     bool checkMove(square from, square to);
+
+    bool sameColor(int from, int to){
+        return board[from].color == board[to].color;
+    };
+
+    bool sameColor(PieceColor p1, PieceColor p2) {
+        return p1 == p2;
+    }
     // helpers for check move
     bool checkKnightMove(int from, int to);
+    bool checkBishopMove(int from, int to);
+    bool checkRookMove(int from, int to);
+    bool checkQueenMove(int from, int to);
+    bool checkKingMove(int from, int to);
+    bool checkPawnMove(int from, int to);
     // bounds check
     inline bool onBoard(int idx){return idx > -1 && idx < 64;}
 
