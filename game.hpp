@@ -5,14 +5,28 @@
 #include <iostream>
 #include <array>
 
-using std::vector;
-using std::array;
+using namespace std;
 
-enum color {white = 0, black, EMPTY_COLOR};
+enum color {
+    white = 0,
+    black,
+    EMPTY_COLOR
+};
 
-enum type {king = 0, queen, rook, bishop, knight, pawn, EMPTY_TYPE};
+enum type {
+    king = 0,
+    queen,
+    rook,
+    bishop,
+    knight,
+    pawn,
+    EMPTY_TYPE
+};
 
-enum other {board_txt = 0, EMPTY_OTHER};
+enum other {
+    board_txt = 0,
+    EMPTY_OTHER
+};
 
 const int boardSize = 800;
 const int sideBarSize = 20;
@@ -27,6 +41,7 @@ struct square{
         this->x = x;
         this->y = y;
     }
+    // get index in board array
     inline int getIdx(){return x + 8 * y;}
     inline bool operator==(square& other){
         return this->x == other.x && this->y == other.y;
@@ -56,19 +71,21 @@ public:
     Game();
     // check legality 
     void Move(square, square);
-    array<piece, 64> GetBoard(){return board;};
+    array<piece, 64> GetBoard() const {return board;};
 private:
     array<piece, 64> board;
+    //array<set<const piece*>, 64> attack;
     color turn;
-
-    //put all pieces in place
+    //puts all pieces in place
     void setup();
-    // return all legal moves
+    // returns all legal moves
     vector<square> legalMoves(square from);
+    // check if the move is legal
     bool checkMove(square from, square to);
-    inline bool onBoard(int idx){return idx > -1 && idx < 64;}
+    // helpers for check move
     bool checkKnightMove(int from, int to);
-
+    // bounds check
+    inline bool onBoard(int idx){return idx > -1 && idx < 64;}
 
 };
 

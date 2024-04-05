@@ -9,7 +9,7 @@ Graphics::Graphics(){
     this->other_textures = LoadOtherTextures(other_images);
 }
 
-void Graphics::DrawGame(Game game){
+void Graphics::DrawGame(const Game& game){
     int index; piece p;
     DrawTexture(other_textures[board_txt], sideBarSize, sideBarSize, WHITE);
     array<piece, 64> board = game.GetBoard();
@@ -41,6 +41,14 @@ vector<Texture2D> Graphics::LoadPieceTextures(vector<Image>& images){
     return textures;
 }
 
+vector<Texture2D> Graphics::LoadOtherTextures(vector<Image>& images){
+    vector<Texture2D> textures;
+    for(Image& img: images){
+        textures.push_back(LoadTextureFromImage(img));
+    }
+    return textures;
+}
+
 vector<Image> Graphics::LoadPieceImages(){
     vector<Image> images(pieces_amount);
 
@@ -60,14 +68,6 @@ vector<Image> Graphics::LoadPieceImages(){
 
     ResizeImages(images, figureSize, figureSize);
     return images;
-}
-
-vector<Texture2D> Graphics::LoadOtherTextures(vector<Image>& images){
-    vector<Texture2D> textures;
-    for(Image& img: images){
-        textures.push_back(LoadTextureFromImage(img));
-    }
-    return textures;
 }
 
 vector<Image> Graphics::LoadOtherImages(){

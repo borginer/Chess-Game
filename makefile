@@ -3,10 +3,10 @@ CXXLINK=$(CXX)
 CXXFLAGS=-std=c++17 -Wall
 LIBRAYFLAGS= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 OBJS = game.o main.o graphics.o
-RM= rm -rf *.o chess.exe
+RM= rm -rf *.o chess
 
-# chess.exe: main.o
-# 	$(CXX) $(CXXFLAGS) $(LIBRAYFLAGS) -L/usr/local/lib -lraylib $(OBJS) -o chess.exe 
+#chess.exe: main.o
+#	$(CXX) $(CXXFLAGS) $(LIBRAYFLAGS) -L/usr/local/lib -lraylib $(OBJS) -o chess.exe 
 chess.exe: main.o
 	$(CXX) $(CXXFLAGS) $(OBJS) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o chess.exe
 

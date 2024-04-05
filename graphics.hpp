@@ -6,16 +6,14 @@
 #include <map>
 #include <vector>
 
-using std::vector;
-using std::map;
+using namespace std;
 
 const int pieces_amount = 12;
-
 
 class Graphics{
 public:
     Graphics();
-    void DrawGame(Game game);
+    void DrawGame(const Game& game);
     void SetMarkedSquare(square);
     
 private:
@@ -27,7 +25,8 @@ private:
     vector<Image> LoadPieceImages();
     vector<Image> LoadOtherImages();
     void ResizeImages(vector<Image>& images, int width, int height);
-    int PieceIdx(int color, int type) {return type + 6 * color;};
+    // calculate index in resources array
+    inline int PieceIdx(int color, int type) {return type + 6 * color;};
     square marked = {-1, -1};
     inline bool MarkedSquare(){return marked.x > -1 && marked.y > -1;}
 

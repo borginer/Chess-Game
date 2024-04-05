@@ -5,14 +5,13 @@ int horizontalMoves[] = {-8, -1, 1, 8};
 int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
 
 Game::Game(){
-    this->turn = white;
     this->board = std::array<piece, 64>();
     setup();
 }
 
 void Game::setup(){
     turn = white;
-    for(piece& t: board) t = {EMPTY_COLOR, EMPTY_TYPE};
+    for(piece& p: board) p = {EMPTY_COLOR, EMPTY_TYPE};
     //rooks
     board[0] = {black, rook}; board[7] = {black, rook};
     board[56] = {white, rook}; board[63] = {white, rook};
