@@ -7,6 +7,12 @@
 
 using namespace std;
 
+const int boardSize = 800;
+const int sideBarSize = 20;
+const int screenWidth = boardSize + 2 * sideBarSize;
+const int screenHeight = boardSize + 2 * sideBarSize;
+const int figureSize = boardSize / 8;
+
 enum PieceColor {
     white = 0,
     black,
@@ -27,12 +33,6 @@ enum Other {
     board_txt = 0,
     EMPTY_OTHER
 };
-
-const int boardSize = 800;
-const int sideBarSize = 20;
-const int screenWidth = boardSize + 2 * sideBarSize;
-const int screenHeight = boardSize + 2 * sideBarSize;
-const int figureSize = boardSize / 8;
 
 struct square {
     int x = -1, y = -1;
@@ -82,6 +82,7 @@ public:
     array<Piece, 64> GetBoard() const {return board;};
 private:
     array<Piece, 64> board;
+    array<Piece, 64> copy_board;
     PieceColor turn;
     int pawn_shadow = -1; // on peasent
     bool queen_castle = false;
@@ -90,16 +91,18 @@ private:
     void setup();
     // check if the move is legal
     bool checkMove(int from, int to);
-    void makeMove(int from, int to);
+    void makeMoveOnCopy(int from, int to);
 
     bool sameColor(int from, int to){
-        return board[from].color == board[to].color;
+        return copy_board[from].color == copy_board[to].color;
     };
 
     bool sameColor(PieceColor p1, PieceColor p2) {
         return p1 == p2;
     }
     // helpers for check move
+    vector<int> possibleMoves(int from);
+    
     vector<int> possibleKnightMoves(int from);
     vector<int> possibleBishopMoves(int from);
     vector<int> possibleRookMoves(int from);
@@ -107,15 +110,18 @@ private:
     vector<int> possibleKingMoves(int from);
     vector<int> possiblePawnMoves(int from);
 
-    bool pawnMove(int from, int to);
     bool inVec(vector<int> vec, int val);
     void markShadowPawn(int from, int to);
     void removePeasent(int to, PieceColor c);
     void handleOnPeasent(int from, int to);
     void handleCastle(int from, int to);
+    bool legalPosition();
+    void printBoard();
     // bounds check
     inline bool onBoard(int idx) {return idx > -1 && idx < 64;}
     inline void nextTurn() {turn = turn == white ? black : white;}
+    inline square getSquare(int idx) {return {idx % 8, idx / 8};}
+    bool onEdge(int idx);
 
 };
 
