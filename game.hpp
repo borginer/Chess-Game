@@ -34,7 +34,7 @@ const int screenWidth = boardSize + 2 * sideBarSize;
 const int screenHeight = boardSize + 2 * sideBarSize;
 const int figureSize = boardSize / 8;
 
-struct square{
+struct square {
     int x = -1, y = -1;
     square() = default;
     square(int x, int y){
@@ -68,6 +68,12 @@ struct Piece{
     inline bool operator!=(Piece& other){return !operator==(other);}
 };
 
+struct move_log {
+    int from;
+    int to;
+    Piece taken;
+};
+
 class Game{
 public:
     Game();
@@ -76,12 +82,15 @@ public:
     array<Piece, 64> GetBoard() const {return board;};
 private:
     array<Piece, 64> board;
-    //array<set<const Piece*>, 64> attack;
     PieceColor turn;
+    int pawn_shadow = -1; // on peasent
+    bool queen_castle = false;
+    bool king_castle = false;
     //puts all Pieces in place
     void setup();
     // check if the move is legal
     bool checkMove(int from, int to);
+    void makeMove(int from, int to);
 
     bool sameColor(int from, int to){
         return board[from].color == board[to].color;
@@ -98,9 +107,15 @@ private:
     vector<int> possibleKingMoves(int from);
     vector<int> possiblePawnMoves(int from);
 
+    bool pawnMove(int from, int to);
     bool inVec(vector<int> vec, int val);
+    void markShadowPawn(int from, int to);
+    void removePeasent(int to, PieceColor c);
+    void handleOnPeasent(int from, int to);
+    void handleCastle(int from, int to);
     // bounds check
-    inline bool onBoard(int idx){return idx > -1 && idx < 64;}
+    inline bool onBoard(int idx) {return idx > -1 && idx < 64;}
+    inline void nextTurn() {turn = turn == white ? black : white;}
 
 };
 
