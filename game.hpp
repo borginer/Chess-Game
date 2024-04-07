@@ -80,10 +80,8 @@ private:
     PieceColor turn;
     //puts all Pieces in place
     void setup();
-    // returns all legal moves
-    vector<square> legalMoves(square from);
     // check if the move is legal
-    bool checkMove(square from, square to);
+    bool checkMove(int from, int to);
 
     bool sameColor(int from, int to){
         return board[from].color == board[to].color;
@@ -93,12 +91,14 @@ private:
         return p1 == p2;
     }
     // helpers for check move
-    bool checkKnightMove(int from, int to);
-    bool checkBishopMove(int from, int to);
-    bool checkRookMove(int from, int to);
-    bool checkQueenMove(int from, int to);
-    bool checkKingMove(int from, int to);
-    bool checkPawnMove(int from, int to);
+    vector<int> possibleKnightMoves(int from);
+    vector<int> possibleBishopMoves(int from);
+    vector<int> possibleRookMoves(int from);
+    vector<int> possibleQueenMoves(int from);
+    vector<int> possibleKingMoves(int from);
+    vector<int> possiblePawnMoves(int from);
+
+    bool inVec(vector<int> vec, int val);
     // bounds check
     inline bool onBoard(int idx){return idx > -1 && idx < 64;}
 

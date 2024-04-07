@@ -38,17 +38,18 @@ void Game::setup() {
 }
 
 void Game::Move(square from, square to) {
+    int idx_from, idx_to;
+    idx_from = from.getIdx();
+    idx_to = to.getIdx();
     if (!from.validBounds() || !to.validBounds() || from == to) {
         std::cout << "Invalid Square" << std::endl;
         return;
     }
-    if (!checkMove(from, to)) {
+    if (!checkMove(idx_from, idx_to)) {
         std::cout << "Invalid Move" << std::endl;
         return;
     }
-    int idx_from, idx_to;
-    idx_from = from.getIdx();
-    idx_to = to.getIdx();
+
     board[idx_to] = board[idx_from];
     board[idx_from] = {EMPTY_PIECE_COLOR, EMPTY_TYPE};
     board[idx_to].moved = true;
@@ -61,28 +62,28 @@ void Game::Move(square from, square to) {
     }
 }
 
-bool Game::checkMove(square from, square to) {
-    if (!sameColor(board[from.getIdx()].color, turn)) {
+bool Game::checkMove(int from, int to) {
+    if (!sameColor(board[from].color, turn)) {
         return false;
     }
-    switch (board[from.getIdx()].type) {
+    switch (board[from].type) {
         case pawn:
-            return checkPawnMove(from.getIdx(), to.getIdx());
+            return inVec(possiblePawnMoves(from), to);
             break;
         case knight:
-            return checkKnightMove(from.getIdx(), to.getIdx());
+            return inVec(possibleKnightMoves(from), to);
             break;
         case bishop: 
-            return checkBishopMove(from.getIdx(), to.getIdx());
+            return inVec(possibleBishopMoves(from), to);
             break;
         case rook:
-            return checkRookMove(from.getIdx(), to.getIdx());
+            return inVec(possibleRookMoves(from), to);
             break;
         case queen:
-            return checkQueenMove(from.getIdx(), to.getIdx());
+            return inVec(possibleQueenMoves(from), to);
             break;
         case king:
-            return checkKingMove(from.getIdx(), to.getIdx());
+            return inVec(possibleKingMoves(from), to);
             break;
         case EMPTY_TYPE:
             return false;
@@ -92,93 +93,125 @@ bool Game::checkMove(square from, square to) {
     }
 }
 
-bool Game::checkKnightMove(int from, int to) {
+vector<int> Game::possibleKnightMoves(int from) {
+    vector<int> ret = {};
     for (int jump: knightMoves) {
-        if (from + jump == to && !sameColor(from, to)) {
-            return true;
+        if (!sameColor(from + jump, from)) {
+            ret.push_back(from + jump);
         }
     }
-    return false;
+    return ret;
 }
 
-bool Game::checkBishopMove(int from, int to) {
+vector<int> Game::possibleBishopMoves(int from) {
     int idx;
+    vector<int> ret = {};
     for (int direct: diagonalMoves) {
         idx = from;
         while (onBoard(idx)) {
             idx += direct;
-            if (idx == to && !sameColor(from, to)) {
-                return true;
+            if (!sameColor(from, idx)) {
+                ret.push_back(idx);
             }
             if (board[idx].type != EMPTY_TYPE) {
                 break;
             }
         }
     }
-    return false;
+    return ret;
 }
 
-bool Game::checkRookMove(int from, int to) {
+vector<int> Game::possibleRookMoves(int from) {
     int idx;
+    vector<int> ret;
     for (int direct: horizontalMoves) {
         idx = from;
         while (onBoard(idx)) {
             idx += direct;
-            if (idx == to && !sameColor(from, to)) {
-                return true;
+            if (!sameColor(from, idx)) {
+                ret.push_back(idx);
             }
             if (board[idx].type != EMPTY_TYPE) {
                 break;
             }
         }
     }
-    return false;
+    return ret;
 }
 
-bool Game::checkQueenMove(int from, int to) {
-    return checkBishopMove(from, to) || checkRookMove(from, to);
+vector<int> Game::possibleQueenMoves(int from) {
+    vector<int> bishop = possibleBishopMoves(from);
+    vector<int> rook = possibleRookMoves(from);
+    bishop.insert(bishop.end(), rook.begin(), rook.end());
+    return bishop;
 }
 
-bool Game::checkKingMove(int from, int to) {
+vector<int> Game::possibleKingMoves(int from) {
+    vector<int> ret;
+    int idx;
     for (int direct: diagonalMoves) {
-        if (from + direct == to && !sameColor(from, to)) {
-            return true;
+        idx = from + direct;
+        if (!sameColor(from, idx)) {
+            ret.push_back(idx);
         }
     }
 
     for (int direct: horizontalMoves) {
-        if (from + direct == to && !sameColor(from, to)) {
-            return true;
+        idx = from + direct;
+        if (!sameColor(from, idx)) {
+            ret.push_back(idx);
         }
     }
 
-    return false;
+    return ret;
 }
 
-bool Game::checkPawnMove(int from, int to) {
+vector<int> Game::possiblePawnMoves(int from) {
+    vector<int> ret;
     int* attack = board[from].color == white ? 
          whitePawnAttackMoves : blackPawnAttackMoves;
     int* move = board[from].color == white ?
          whitePawnMoves : blackPawnMoves;
 
+    int idx;
     while (*attack) {
-        if (from + *attack == to && 
-        board[to].color != EMPTY_PIECE_COLOR && 
-        !sameColor(from, to)) {
-            return true;
+        idx = from + *attack;
+        if (board[idx].color != EMPTY_PIECE_COLOR && 
+            !sameColor(from, idx)) {
+            ret.push_back(idx);
         }
         attack++;
     }
 
     while (*move) {
-        if ((from + *move == to || 
-        ((from + 2 * (*move)) && !board[from].moved)) 
-        && !sameColor(from, to)) {
-            return true;
+        int normal_move = from + *move;
+        int double_jump = from + 2 * (*move);
+
+        bool blocked = board[normal_move].type != EMPTY_TYPE;
+        bool jump_blocked = board[double_jump].type != EMPTY_TYPE;
+        
+        bool can_double_jump = !board[from].moved && !blocked && !jump_blocked;
+
+        if (!blocked) {
+            ret.push_back(normal_move);
         }
+
+        if (can_double_jump) {
+            ret.push_back(double_jump);    
+        }
+        
         move++;
     }
 
+    return ret;
+}
+
+bool Game::inVec(vector<int> vec, int val) {
+    for (int idx : vec) {
+        if (idx == val) {
+            return true;
+        }
+    }
     return false;
 }
 
