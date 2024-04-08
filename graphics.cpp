@@ -83,7 +83,7 @@ void Graphics::ResizeImages(vector<Image>& images, int width, int height){
 }
 
 void Graphics::SetMarkedSquare(square s){
-    if(s.validBounds() || (s.x == -1 && s.y == -1)){
+    if(s.onBoard() || (s.x == -1 && s.y == -1)){
         marked.x = s.x;
         marked.y = s.y;
     }

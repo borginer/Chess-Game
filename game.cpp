@@ -1,12 +1,20 @@
 #include "game.hpp"
 
-static int diagonalMoves[] = {-9, -7, 7, 9}; 
+static int diagonalMoves2[] = {-9, -7, 7, 9}; 
 static int horizontalMoves[] = {-8, -1, 1, 8};
-static int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
+// static int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
 static int blackPawnMoves[] = {8, 0};
 static int whitePawnMoves[] = {-8, 0};
 static int blackPawnAttackMoves[] = {7, 9, 0};
 static int whitePawnAttackMoves[] = {-7, -9, 0};
+
+square knightMoves[] = {{-2, -1}, {-2, 1}, {2, -1}, {2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}}; 
+square diagonalMoves[] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
+square horizontalMoves2[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+square blackPawnAttackMoves2[] = {{-1, 1}, {1, 1}};
+square whitePawnAttackMoves2[] = {{-1, -1}, {1, -1}};
+square blackPawnMoves2 = {0, 1};
+square whitePawnMoves2 = {0, -1};
 
 #define kingSideMove 1
 #define queenSideMove -1
@@ -29,7 +37,7 @@ void Game::Move(square from, square to) {
         return;
     }
 
-    if (!from.validBounds() || !to.validBounds() || from == to) {
+    if (!from.onBoard() || !to.onBoard() || from == to) {
         std::cout << "Square out of bounds" << std::endl;
         return;
     }
@@ -40,6 +48,7 @@ void Game::Move(square from, square to) {
     }
 
     calcKingIdx();
+    resetKingIdxCopy();
     makeMoveOnCopy(idx_from, idx_to);
     
     if (legalPosition()) {
@@ -54,7 +63,7 @@ void Game::Move(square from, square to) {
     else {
         printf("ilegal position reached\n");
     }
-    
+
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double, milli> duration = end - start;
     cout << "Move calc time: " << duration.count() << "ms" << endl;
@@ -102,7 +111,7 @@ void Game::makeMoveOnCopy(int from, int to) {
         break;
         case king:
         handleCastle(from, to);
-        updateKingIdx(to, copy_board[from].color);
+        updateKingIdxCopy(to, copy_board[from].color);
         break;
         default:
         break;
@@ -128,11 +137,13 @@ bool Game::checkMate() {
     for (int idx = 0; idx < squaresAmount; idx++) {
         if (copy_board[idx].color == turn) {
             copy_board = board;
+            resetKingIdxCopy();
             moves = possibleMoves(idx);
             for (int move : moves) {
                 copy_board = board;
                 makeMoveOnCopy(idx, move);
                 if (legalPosition()) {
+                    // cout << idx << " move: " << move << endl;
                     return false;
                 }
             }
@@ -146,7 +157,7 @@ bool Game::legalPosition() {
     bool whiteAttackMat[64] = {false};
     vector<int> moves;
     Piece p;
-
+    // cout << "13 type:" << copy_board[13].type << endl;
     for (int idx = 0; idx < squaresAmount; idx++) {
         moves = possibleMoves(idx);
         for (int move : moves) {
@@ -158,30 +169,30 @@ bool Game::legalPosition() {
             }
         }
     }
-    if ((turn == black && whiteAttackMat[bKingIdx]) || 
-        (turn == white && blackAttackMat[wKingIdx])) {
+    if ((turn == black && whiteAttackMat[bKingIdxCopy]) || 
+        (turn == white && blackAttackMat[wKingIdxCopy])) {
         king_castle = false;
         queen_castle = false;
         return false;
     }
 
     if ((turn == black && king_castle &&
-         ((whiteAttackMat[bKingIdx + kingSideMove]) ||
-         whiteAttackMat[bKingIdx + 2 * kingSideMove])) ||
+         ((whiteAttackMat[bKingIdxCopy + kingSideMove]) ||
+         whiteAttackMat[bKingIdxCopy + 2 * kingSideMove])) ||
          (turn == white && king_castle &&
-         ((whiteAttackMat[wKingIdx + kingSideMove] ||
-         whiteAttackMat[wKingIdx + 2 * kingSideMove])))
+         ((whiteAttackMat[wKingIdxCopy + kingSideMove] ||
+         whiteAttackMat[wKingIdxCopy + 2 * kingSideMove])))
          ) {
         king_castle = false;
         return false;
     }
 
     if ((turn == black && queen_castle &&
-         ((whiteAttackMat[bKingIdx + queenSideMove]) ||
-         whiteAttackMat[bKingIdx + 2 * queenSideMove])) ||
+         ((whiteAttackMat[bKingIdxCopy + queenSideMove]) ||
+         whiteAttackMat[bKingIdxCopy + 2 * queenSideMove])) ||
          (turn == white && queen_castle &&
-         ((whiteAttackMat[wKingIdx + queenSideMove] ||
-         whiteAttackMat[wKingIdx + 2 * queenSideMove])))
+         ((whiteAttackMat[wKingIdxCopy + queenSideMove] ||
+         whiteAttackMat[wKingIdxCopy + 2 * queenSideMove])))
          ) {
         queen_castle = false;
         return false;
@@ -190,29 +201,37 @@ bool Game::legalPosition() {
     // printMat(whiteAttackMat);
     // cout << endl << "black:" << endl;
     // printMat(blackAttackMat);
+    // cout << "black king idx: " << bKingIdxCopy << endl;
     return true;
 }
 
-vector<int> Game::possibleKnightMoves(int from) {
+vector<int> Game::possibleKnightMoves(int fr) {
     vector<int> ret = {};
-    for (int jump: knightMoves) {
-        if (!sameColor(from + jump, from) && onBoard(from + jump)) {
-            ret.push_back(from + jump);
+    square from = square(fr);
+    square s;
+    for (square jump: knightMoves) {
+        if (!sameColor((from + jump).getIdx(), from.getIdx()) && (from + jump).onBoard()) {
+            ret.push_back((from + jump).getIdx());
         }
     }
+    // cout << "x: " << from.x << "y: " << from.y << endl;
+    // for (int x : ret) {
+    //     cout << x << " ";
+    // }
     return ret;
 }
 
-vector<int> Game::possibleBishopMoves(int from) {
-    int idx;
+vector<int> Game::possibleBishopMoves(int fr) {
+    square idx;
     vector<int> ret = {};
-    for (int direct: diagonalMoves) {
+    square from = square(fr);
+    for (square direct: diagonalMoves) {
         idx = from;
-        while (onBoard(idx += direct)) {
-            if (!sameColor(from, idx)) {
-                ret.push_back(idx);
+        while ((idx += direct).onBoard()) {
+            if (!sameColor(from.getIdx(), idx.getIdx())) {
+                ret.push_back(idx.getIdx());
             }
-            if (copy_board[idx].type != EMPTY_TYPE || onEdge(idx)) {
+            if (copy_board[idx.getIdx()].type != EMPTY_TYPE) {
                 break;
             }
         }
@@ -248,7 +267,7 @@ vector<int> Game::possibleQueenMoves(int from) {
 vector<int> Game::possibleKingMoves(int from) {
     vector<int> ret;
     int idx;
-    for (int direct: diagonalMoves) {
+    for (int direct: diagonalMoves2) {
         idx = from + direct;
         if (!sameColor(from, idx) && onBoard(idx)) {
             ret.push_back(idx);
@@ -385,7 +404,7 @@ bool Game::onEdge(int idx) {
 }
 
 void Game::setup() {
-    turn = white;
+    turn = white;  
     for (Piece& p: board) {
         p = {EMPTY_PIECE_COLOR, EMPTY_TYPE};
     }
@@ -423,6 +442,16 @@ void Game::calcKingIdx() {
 
         }
     }
+}
+
+void Game::commitKingIdx() {
+    wKingIdx = wKingIdxCopy;
+    bKingIdx = bKingIdxCopy;
+}
+
+void Game::resetKingIdxCopy() {
+    wKingIdxCopy = wKingIdx;
+    bKingIdxCopy = bKingIdx;
 }
 
 void Game::printBoard(){

@@ -7,6 +7,7 @@
 #include <string>
 #include <chrono>
 
+
 using namespace std;
 
 const int boardSize = 800;
@@ -43,13 +44,25 @@ struct square {
         this->x = x;
         this->y = y;
     }
+    square(int idx) {
+        this->x = idx % 8;
+        this->y = idx / 8;
+    }
     // get index in board array
-    inline int getIdx(){return x + 8 * y;}
-    inline bool operator==(square& other){
+    inline int getIdx() {return x + 8 * y;}
+    inline bool operator==(square& other) {
         return this->x == other.x && this->y == other.y;
     }
+    inline square operator+(square& other) {
+        return square(this->x + other.x, this->y + other.y);
+    }
+    inline square& operator+=(square& other) {
+        this->x += other.x;
+        this->y += other.y;
+        return *this;
+    }
     // checks indexing of input only
-    inline bool validBounds(){
+    inline bool onBoard(){
         return !(x < 0 || x > 7 || y < 0 || y > 7);
     }
 };
@@ -84,14 +97,20 @@ public:
     array<Piece, 64> GetBoard() const {return board;};
 private:
     array<Piece, 64> board;
+    int bKingIdx;
+    int wKingIdx;
+
     array<Piece, 64> copy_board;
+    int bKingIdxCopy;
+    int wKingIdxCopy;
+
     bool game_in_progress;
     PieceColor turn;
     int pawn_shadow = -1; // on peasent
+
     bool queen_castle = false;
     bool king_castle = false;
-    int bKingIdx;
-    int wKingIdx;
+    
     //puts all Pieces in place
     void setup();
     // check if the move is legal
@@ -121,8 +140,8 @@ private:
     // checks if current turn player lost
     bool checkMate();
     
-    inline void updateKingIdx(int idx, PieceColor c) {
-        int& king = (c == white) ? wKingIdx : bKingIdx;
+    inline void updateKingIdxCopy(int idx, PieceColor c) {
+        int& king = (c == white) ? wKingIdxCopy : bKingIdxCopy;
         king = idx;
     }
     inline bool onBoard(int idx) {return idx > -1 && idx < 64;}
@@ -137,7 +156,8 @@ private:
 
     // helper for diagonal moves
     bool onEdge(int idx);
-
+    void commitKingIdx();
+    void resetKingIdxCopy();
     void calcKingIdx();
     void printBoard();
 };
