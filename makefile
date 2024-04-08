@@ -1,6 +1,6 @@
 CXX=g++
 CXXLINK=$(CXX)
-CXXFLAGS=-std=c++17 -Wall
+CXXFLAGS=-std=c++17 -Wall -O2
 LIBRAYFLAGS= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 OBJS = game.o main.o graphics.o
 RM= rm -rf *.o chess

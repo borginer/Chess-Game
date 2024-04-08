@@ -137,6 +137,8 @@ private:
 
     // helper for diagonal moves
     bool onEdge(int idx);
+
+    void calcKingIdx();
     void printBoard();
 };
 

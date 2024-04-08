@@ -39,6 +39,7 @@ void Game::Move(square from, square to) {
         return;
     }
 
+    calcKingIdx();
     makeMoveOnCopy(idx_from, idx_to);
     
     if (legalPosition()) {
@@ -53,6 +54,7 @@ void Game::Move(square from, square to) {
     else {
         printf("ilegal position reached\n");
     }
+    
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double, milli> duration = end - start;
     cout << "Move calc time: " << duration.count() << "ms" << endl;
@@ -156,8 +158,32 @@ bool Game::legalPosition() {
             }
         }
     }
-    if ((whiteAttackMat[bKingIdx] && turn == black) || 
-        (blackAttackMat[wKingIdx] && turn == white)) {
+    if ((turn == black && whiteAttackMat[bKingIdx]) || 
+        (turn == white && blackAttackMat[wKingIdx])) {
+        king_castle = false;
+        queen_castle = false;
+        return false;
+    }
+
+    if ((turn == black && king_castle &&
+         ((whiteAttackMat[bKingIdx + kingSideMove]) ||
+         whiteAttackMat[bKingIdx + 2 * kingSideMove])) ||
+         (turn == white && king_castle &&
+         ((whiteAttackMat[wKingIdx + kingSideMove] ||
+         whiteAttackMat[wKingIdx + 2 * kingSideMove])))
+         ) {
+        king_castle = false;
+        return false;
+    }
+
+    if ((turn == black && queen_castle &&
+         ((whiteAttackMat[bKingIdx + queenSideMove]) ||
+         whiteAttackMat[bKingIdx + 2 * queenSideMove])) ||
+         (turn == white && queen_castle &&
+         ((whiteAttackMat[wKingIdx + queenSideMove] ||
+         whiteAttackMat[wKingIdx + 2 * queenSideMove])))
+         ) {
+        queen_castle = false;
         return false;
     }
     // cout << endl << "white:" << endl;
@@ -334,11 +360,14 @@ void Game::removePeasent(int to, PieceColor c) {
 
 void Game::handleCastle(int from, int to) {
     int rookIdx;
+    king_castle = false;
+    queen_castle = false;
     if (from + 2 * kingSideMove == to) {
         rookIdx = from + 3 * kingSideMove;
         copy_board[from + kingSideMove] = copy_board[rookIdx];
         copy_board[rookIdx].type = EMPTY_TYPE;
         copy_board[rookIdx].color = EMPTY_PIECE_COLOR;
+        king_castle = true;
     }
 
     if (from + 2 *queenSideMove == to) {
@@ -346,6 +375,7 @@ void Game::handleCastle(int from, int to) {
         copy_board[from + queenSideMove] = copy_board[rookIdx];
         copy_board[rookIdx].type = EMPTY_TYPE;
         copy_board[rookIdx].color = EMPTY_PIECE_COLOR;
+        queen_castle = true;
     }
 }
 
@@ -380,6 +410,19 @@ void Game::setup() {
     wKingIdx = 60;
     game_in_progress = true;
 
+}
+
+void Game::calcKingIdx() {
+    for (int i = 0; i < squaresAmount; i++) {
+        if (board[i].type == king) {
+            if (board[i].color == black) {
+                bKingIdx = i;
+            } else {
+                wKingIdx = i;
+            }
+
+        }
+    }
 }
 
 void Game::printBoard(){
