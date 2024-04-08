@@ -56,6 +56,9 @@ struct square {
     inline square operator+(square& other) {
         return square(this->x + other.x, this->y + other.y);
     }
+    inline square operator+(int idx) {
+        return square(this->x + idx % 8, this->y + idx / 8);
+    }
     inline square& operator+=(square& other) {
         this->x += other.x;
         this->y += other.y;
@@ -144,14 +147,26 @@ private:
         int& king = (c == white) ? wKingIdxCopy : bKingIdxCopy;
         king = idx;
     }
-    inline bool onBoard(int idx) {return idx > -1 && idx < 64;}
-    inline void nextTurn() {turn = turn == white ? black : white;}
-    inline square getSquare(int idx) {return {idx % 8, idx / 8};}
+    inline bool onBoard(int idx) {
+        return idx > -1 && idx < 64;
+    }
+    inline void nextTurn() {
+        turn = turn == white ? black : white;
+    }
+    inline square getSquare(int idx) {
+        return {idx % 8, idx / 8};
+    }
     inline bool sameColor(int from, int to){
         return copy_board[from].color == copy_board[to].color;
     };
     inline bool sameColor(PieceColor p1, PieceColor p2) {
         return p1 == p2;
+    }
+    inline Piece& getPiece(square s) {
+        return copy_board[s.getIdx()];
+    }
+    inline Piece& getPiece(int idx) {
+        return copy_board[idx];
     }
 
     // helper for diagonal moves
