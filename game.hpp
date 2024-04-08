@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <array>
+#include <string>
+#include <chrono>
 
 using namespace std;
 
@@ -83,26 +85,22 @@ public:
 private:
     array<Piece, 64> board;
     array<Piece, 64> copy_board;
+    bool game_in_progress;
     PieceColor turn;
     int pawn_shadow = -1; // on peasent
     bool queen_castle = false;
     bool king_castle = false;
+    int bKingIdx;
+    int wKingIdx;
     //puts all Pieces in place
     void setup();
     // check if the move is legal
     bool checkMove(int from, int to);
     void makeMoveOnCopy(int from, int to);
 
-    bool sameColor(int from, int to){
-        return copy_board[from].color == copy_board[to].color;
-    };
-
-    bool sameColor(PieceColor p1, PieceColor p2) {
-        return p1 == p2;
-    }
-    // helpers for check move
+    // find all possible moves for every piece
     vector<int> possibleMoves(int from);
-    
+    // helpers for possibleMoves
     vector<int> possibleKnightMoves(int from);
     vector<int> possibleBishopMoves(int from);
     vector<int> possibleRookMoves(int from);
@@ -111,18 +109,35 @@ private:
     vector<int> possiblePawnMoves(int from);
 
     bool inVec(vector<int> vec, int val);
+    // mark square if pawn double jumped
     void markShadowPawn(int from, int to);
+    // remove the pawn being capture on peasent
     void removePeasent(int to, PieceColor c);
+    // handle special interactions
     void handleOnPeasent(int from, int to);
     void handleCastle(int from, int to);
+    // checks that the king is under attack, returns true if it isn't
     bool legalPosition();
-    void printBoard();
-    // bounds check
+    // checks if current turn player lost
+    bool checkMate();
+    
+    inline void updateKingIdx(int idx, PieceColor c) {
+        int& king = (c == white) ? wKingIdx : bKingIdx;
+        king = idx;
+    }
     inline bool onBoard(int idx) {return idx > -1 && idx < 64;}
     inline void nextTurn() {turn = turn == white ? black : white;}
     inline square getSquare(int idx) {return {idx % 8, idx / 8};}
-    bool onEdge(int idx);
+    inline bool sameColor(int from, int to){
+        return copy_board[from].color == copy_board[to].color;
+    };
+    inline bool sameColor(PieceColor p1, PieceColor p2) {
+        return p1 == p2;
+    }
 
+    // helper for diagonal moves
+    bool onEdge(int idx);
+    void printBoard();
 };
 
 #endif

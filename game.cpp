@@ -18,26 +18,16 @@ Game::Game(){
     setup();
 }
 
-void Game::printBoard(){
-    cout << "types:" << endl;
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            cout << copy_board[i * 8 + j].type << " ";
-        }
-        cout << endl;
-    }
-    cout << "colors:" << endl;
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            cout << copy_board[i * 8 + j].color << " ";
-        }
-        cout << endl;
-    }
-}
-
 void Game::Move(square from, square to) {
+    auto start = chrono::high_resolution_clock::now();
     int idx_from = from.getIdx();
     int idx_to = to.getIdx();
+    copy_board = board;
+    
+    if (!game_in_progress) {
+        cout << "Game Ended" << endl;
+        return;
+    }
 
     if (!from.validBounds() || !to.validBounds() || from == to) {
         std::cout << "Square out of bounds" << std::endl;
@@ -49,18 +39,23 @@ void Game::Move(square from, square to) {
         return;
     }
 
-    copy_board = board;
     makeMoveOnCopy(idx_from, idx_to);
-    printBoard();
     
     if (legalPosition()) {
         board = copy_board;
+        string clr = (turn == white) ? "white" : "black";
+        nextTurn();
+        if (checkMate()) {
+            cout << clr << " wins" << endl; 
+            game_in_progress = false;
+        }
     }
     else {
         printf("ilegal position reached\n");
     }
-
-    nextTurn();
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double, milli> duration = end - start;
+    cout << "Move calc time: " << duration.count() << "ms" << endl;
 }
 
 bool Game::checkMove(int from, int to) {
@@ -105,6 +100,7 @@ void Game::makeMoveOnCopy(int from, int to) {
         break;
         case king:
         handleCastle(from, to);
+        updateKingIdx(to, copy_board[from].color);
         break;
         default:
         break;
@@ -124,11 +120,31 @@ void printMat(bool mat[]) {
     }
 }
 
+bool Game::checkMate() {
+    vector<int> moves;
+    copy_board = board;
+    for (int idx = 0; idx < squaresAmount; idx++) {
+        if (copy_board[idx].color == turn) {
+            copy_board = board;
+            moves = possibleMoves(idx);
+            for (int move : moves) {
+                copy_board = board;
+                makeMoveOnCopy(idx, move);
+                if (legalPosition()) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 bool Game::legalPosition() {
     bool blackAttackMat[64] = {false};
     bool whiteAttackMat[64] = {false};
     vector<int> moves;
     Piece p;
+
     for (int idx = 0; idx < squaresAmount; idx++) {
         moves = possibleMoves(idx);
         for (int move : moves) {
@@ -140,10 +156,14 @@ bool Game::legalPosition() {
             }
         }
     }
-    cout << endl << "white:" << endl;
-    printMat(whiteAttackMat);
-    cout << endl << "black:" << endl;
-    printMat(blackAttackMat);
+    if ((whiteAttackMat[bKingIdx] && turn == black) || 
+        (blackAttackMat[wKingIdx] && turn == white)) {
+        return false;
+    }
+    // cout << endl << "white:" << endl;
+    // printMat(whiteAttackMat);
+    // cout << endl << "black:" << endl;
+    // printMat(blackAttackMat);
     return true;
 }
 
@@ -163,7 +183,6 @@ vector<int> Game::possibleBishopMoves(int from) {
     for (int direct: diagonalMoves) {
         idx = from;
         while (onBoard(idx += direct)) {
-            //printf("bishop color: %d: idx: %d\n", copy_board[from].color, idx);
             if (!sameColor(from, idx)) {
                 ret.push_back(idx);
             }
@@ -225,7 +244,6 @@ vector<int> Game::possibleKingMoves(int from) {
         copy_board[kingRookIdx].type == rook &&
         copy_board[kingRookIdx].moved == false) {
             ret.push_back(from + 2 * kingSideMove);
-            king_castle = true;
     }
     int queenRookIdx = from + 4 * queenSideMove;
     if (copy_board[from].moved == false && 
@@ -235,7 +253,6 @@ vector<int> Game::possibleKingMoves(int from) {
         copy_board[queenRookIdx].type == rook &&
         copy_board[queenRookIdx].moved == false) {
             ret.push_back(from + 2 * queenSideMove);
-            queen_castle = true;
     }
     return ret;
 }
@@ -317,14 +334,14 @@ void Game::removePeasent(int to, PieceColor c) {
 
 void Game::handleCastle(int from, int to) {
     int rookIdx;
-    if (king_castle) {
+    if (from + 2 * kingSideMove == to) {
         rookIdx = from + 3 * kingSideMove;
         copy_board[from + kingSideMove] = copy_board[rookIdx];
         copy_board[rookIdx].type = EMPTY_TYPE;
         copy_board[rookIdx].color = EMPTY_PIECE_COLOR;
     }
 
-    if (queen_castle) {
+    if (from + 2 *queenSideMove == to) {
         rookIdx = from + 4 * queenSideMove;
         copy_board[from + queenSideMove] = copy_board[rookIdx];
         copy_board[rookIdx].type = EMPTY_TYPE;
@@ -359,5 +376,25 @@ void Game::setup() {
     for(int i = 8; i < 16; ++i) board[i] = {black, pawn};
     for(int i = 48; i < 56; ++i) board[i] = {white, pawn};
 
-    copy_board = board;
+    bKingIdx = 4;
+    wKingIdx = 60;
+    game_in_progress = true;
+
+}
+
+void Game::printBoard(){
+    cout << "types:" << endl;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            cout << copy_board[i * 8 + j].type << " ";
+        }
+        cout << endl;
+    }
+    cout << "colors:" << endl;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            cout << copy_board[i * 8 + j].color << " ";
+        }
+        cout << endl;
+    }
 }
