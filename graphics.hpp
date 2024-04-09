@@ -14,7 +14,7 @@ class Graphics{
 public:
     Graphics();
     void DrawGame(const Game& game);
-    void SetMarkedSquare(square);
+    void SetMarkedSquare(Square);
     
 private:
     vector<Texture2D> piece_textures;
@@ -26,9 +26,13 @@ private:
     vector<Image> LoadOtherImages();
     void ResizeImages(vector<Image>& images, int width, int height);
     // calculate index in resources array
-    inline int PieceIdx(int color, int type) {return type + 6 * color;};
-    square marked = {-1, -1};
-    inline bool MarkedSquare(){return marked.x > -1 && marked.y > -1;}
+    inline int PieceIdx(int color, int type) {
+        return type + 6 * color;
+    };
+    Square marked = {-1, -1};
+    inline bool MarkedSquare() {
+        return marked.x > -1 && marked.y > -1;
+    }
 
 };
 

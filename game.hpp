@@ -37,38 +37,38 @@ enum Other {
     EMPTY_OTHER
 };
 
-struct square {
+struct Square {
     int x = -1, y = -1;
-    square() = default;
-    square(int x, int y){
+    Square() = default;
+    Square(int x, int y){
         this->x = x;
         this->y = y;
     }
-    square(int idx) {
+    Square(int idx) {
         this->x = idx % 8;
         this->y = idx / 8;
     }
     // get index in board array
     inline int getIdx() {return x + 8 * y;}
-    inline bool operator==(square& other) {
+    inline bool operator==(Square& other) {
         return this->x == other.x && this->y == other.y;
     }
-    inline bool operator!=(square& other) {
+    inline bool operator!=(Square& other) {
         return *this==other;
     }
-    inline square operator+(square& other) {
-        return square(this->x + other.x, this->y + other.y);
+    inline Square operator+(Square& other) {
+        return Square(this->x + other.x, this->y + other.y);
     }
-    inline square operator-(square& other) {
-        return square(this->x - other.x, this->y - other.y);
+    inline Square operator-(Square& other) {
+        return Square(this->x - other.x, this->y - other.y);
     }
-    inline square operator+(int idx) {
-        return square(this->x + idx % 8, this->y + idx / 8);
+    inline Square operator+(int idx) {
+        return Square(this->x + idx % 8, this->y + idx / 8);
     }
-    inline square operator-(int idx) {
+    inline Square operator-(int idx) {
         return *this + (-idx);
     }
-    inline square& operator+=(square& other) {
+    inline Square& operator+=(Square& other) {
         this->x += other.x;
         this->y += other.y;
         return *this;
@@ -105,18 +105,18 @@ class Game{
 public:
     Game();
     // check legality 
-    void Move(square, square);
+    void Move(Square, Square);
     array<Piece, 64> GetBoard() const {return board;};
 private:
     array<Piece, 64> board;
     int bKingIdx;
     int wKingIdx;
-    int pawn_shadow = -1; // on peasent
+    Square pawn_shadow = {-1, -1}; // on peasent
 
     array<Piece, 64> copy_board;
     int bKingIdxCopy;
     int wKingIdxCopy;
-    int pawn_shadow_copy;
+    Square pawn_shadow_copy;
 
     bool game_in_progress;
     PieceColor turn;
@@ -127,27 +127,27 @@ private:
     //puts all Pieces in place
     void setup();
     // check if the move is legal
-    bool checkMove(square from, square to);
-    void makeMoveOnCopy(square from, square to);
+    bool checkMove(Square from, Square to);
+    void makeMoveOnCopy(Square from, Square to);
 
     // find all possible moves for every piece
-    vector<int> possibleMoves(square from);
+    vector<int> possibleMoves(Square from);
     // helpers for possibleMoves
-    vector<int> possibleKnightMoves(square from);
-    vector<int> possibleBishopMoves(square from);
-    vector<int> possibleRookMoves(square from);
-    vector<int> possibleQueenMoves(square from);
-    vector<int> possibleKingMoves(square from);
-    vector<int> possiblePawnMoves(square from);
+    vector<int> possibleKnightMoves(Square from);
+    vector<int> possibleBishopMoves(Square from);
+    vector<int> possibleRookMoves(Square from);
+    vector<int> possibleQueenMoves(Square from);
+    vector<int> possibleKingMoves(Square from);
+    vector<int> possiblePawnMoves(Square from);
 
     bool inVec(vector<int> vec, int val);
-    // mark square if pawn double jumped
-    void markShadowPawn(int from, int to);
+    // mark Square if pawn double jumped
+    void markShadowPawn(Square from, Square to);
     // remove the pawn being capture on peasent
-    void removePeasent(square to, PieceColor c);
+    void removePeasent(Square to, PieceColor c);
     // handle special interactions
-    void handleOnPeasent(int from, int to);
-    void handleCastle(square from, square to);
+    void handleOnPeasent(Square from, Square to);
+    void handleCastle(Square from, Square to);
     // checks that the king is under attack, returns true if it isn't
     bool legalPosition();
     // checks if current turn player lost
@@ -164,24 +164,25 @@ private:
     inline void nextTurn() {
         turn = turn == white ? black : white;
     }
-    inline square getSquare(int idx) {
+    inline Square getSquare(int idx) {
         return {idx % 8, idx / 8};
     }
     inline bool sameColor(int from, int to) {
         return copy_board[from].color == copy_board[to].color;
     }
-    inline bool sameColor(square from, square to) {
+    inline bool sameColor(Square from, Square to) {
         return sameColor(from.getIdx(), to.getIdx());
     }
     inline bool sameColor(PieceColor p1, PieceColor p2) {
         return p1 == p2;
     }
-    inline Piece& getPiece(square s) {
+    inline Piece& getPiece(Square s) {
         return copy_board[s.getIdx()];
     }
     inline Piece& getPiece(int idx) {
         return copy_board[idx];
     }
+    
     void commitKingIdx();
     void resetKingIdxCopy();
     void calcKingIdx();

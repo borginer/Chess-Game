@@ -9,20 +9,22 @@ Graphics::Graphics(){
     this->other_textures = LoadOtherTextures(other_images);
 }
 
-void Graphics::DrawGame(const Game& game){
+void Graphics::DrawGame(const Game& game) {
     int index; 
     Piece p;
     DrawTexture(other_textures[board_txt], sideBarSize, sideBarSize, WHITE);
     array<Piece, 64> board = game.GetBoard();
-    if(MarkedSquare()) 
+    if (MarkedSquare()) { 
         DrawRectangle(sideBarSize + marked.x * figureSize, 
                       sideBarSize + marked.y * figureSize, 
                       figureSize, figureSize, {220,0,0,255});
-    for(int row = 0; row < 8; ++row){
-        for(int col = 0; col < 8; ++col){
-            index = square{col, row}.getIdx();
+    }
+
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            index = Square{col, row}.getIdx();
             p = board[index];
-            if(p != EMPTY_PIECE){
+            if (p != EMPTY_PIECE) {
                 DrawTexture(piece_textures[PieceIdx(p.color, p.type)], 
                             sideBarSize + col * figureSize,
                             sideBarSize + row * figureSize, WHITE);
@@ -31,10 +33,10 @@ void Graphics::DrawGame(const Game& game){
     }
 }
 
-vector<Texture2D> Graphics::LoadPieceTextures(vector<Image>& images){
+vector<Texture2D> Graphics::LoadPieceTextures(vector<Image>& images) {
     vector<Texture2D> textures(pieces_amount);
-    for(int color = white; color != EMPTY_PIECE_COLOR; ++color){
-        for(int type = king; type != EMPTY_TYPE; ++type){
+    for (int color = white; color != EMPTY_PIECE_COLOR; ++color) {
+        for (int type = king; type != EMPTY_TYPE; ++type) {
             textures[PieceIdx(color, type)] = 
                 LoadTextureFromImage(images[(PieceIdx(color, type))]);
         }
@@ -42,15 +44,15 @@ vector<Texture2D> Graphics::LoadPieceTextures(vector<Image>& images){
     return textures;
 }
 
-vector<Texture2D> Graphics::LoadOtherTextures(vector<Image>& images){
+vector<Texture2D> Graphics::LoadOtherTextures(vector<Image>& images) {
     vector<Texture2D> textures;
-    for(Image& img: images){
+    for (Image& img: images) {
         textures.push_back(LoadTextureFromImage(img));
     }
     return textures;
 }
 
-vector<Image> Graphics::LoadPieceImages(){
+vector<Image> Graphics::LoadPieceImages() {
     vector<Image> images(pieces_amount);
 
     images[PieceIdx(white, king)]   = LoadImage("resources/wKing.png");
@@ -71,19 +73,21 @@ vector<Image> Graphics::LoadPieceImages(){
     return images;
 }
 
-vector<Image> Graphics::LoadOtherImages(){
+vector<Image> Graphics::LoadOtherImages() {
     vector<Image> images(1);
     images[board_txt] = LoadImage("resources/board.png");
     ResizeImages(images, boardSize, boardSize);
     return images;
 }
 
-void Graphics::ResizeImages(vector<Image>& images, int width, int height){
-    for(auto& image: images) {ImageResize(&image, width, height);}
+void Graphics::ResizeImages(vector<Image>& images, int width, int height) {
+    for(auto& image: images) {
+        ImageResize(&image, width, height);
+    }
 }
 
-void Graphics::SetMarkedSquare(square s){
-    if(s.onBoard() || (s.x == -1 && s.y == -1)){
+void Graphics::SetMarkedSquare(Square s) {
+    if (s.onBoard() || (s.x == -1 && s.y == -1)) {
         marked.x = s.x;
         marked.y = s.y;
     }
