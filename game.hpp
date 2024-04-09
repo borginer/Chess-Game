@@ -53,11 +53,20 @@ struct square {
     inline bool operator==(square& other) {
         return this->x == other.x && this->y == other.y;
     }
+    inline bool operator!=(square& other) {
+        return *this==other;
+    }
     inline square operator+(square& other) {
         return square(this->x + other.x, this->y + other.y);
     }
+    inline square operator-(square& other) {
+        return square(this->x - other.x, this->y - other.y);
+    }
     inline square operator+(int idx) {
         return square(this->x + idx % 8, this->y + idx / 8);
+    }
+    inline square operator-(int idx) {
+        return *this + (-idx);
     }
     inline square& operator+=(square& other) {
         this->x += other.x;
@@ -102,14 +111,15 @@ private:
     array<Piece, 64> board;
     int bKingIdx;
     int wKingIdx;
+    int pawn_shadow = -1; // on peasent
 
     array<Piece, 64> copy_board;
     int bKingIdxCopy;
     int wKingIdxCopy;
+    int pawn_shadow_copy;
 
     bool game_in_progress;
     PieceColor turn;
-    int pawn_shadow = -1; // on peasent
 
     bool queen_castle = false;
     bool king_castle = false;
@@ -117,32 +127,33 @@ private:
     //puts all Pieces in place
     void setup();
     // check if the move is legal
-    bool checkMove(int from, int to);
-    void makeMoveOnCopy(int from, int to);
+    bool checkMove(square from, square to);
+    void makeMoveOnCopy(square from, square to);
 
     // find all possible moves for every piece
-    vector<int> possibleMoves(int from);
+    vector<int> possibleMoves(square from);
     // helpers for possibleMoves
-    vector<int> possibleKnightMoves(int from);
-    vector<int> possibleBishopMoves(int from);
-    vector<int> possibleRookMoves(int from);
-    vector<int> possibleQueenMoves(int from);
-    vector<int> possibleKingMoves(int from);
-    vector<int> possiblePawnMoves(int from);
+    vector<int> possibleKnightMoves(square from);
+    vector<int> possibleBishopMoves(square from);
+    vector<int> possibleRookMoves(square from);
+    vector<int> possibleQueenMoves(square from);
+    vector<int> possibleKingMoves(square from);
+    vector<int> possiblePawnMoves(square from);
 
     bool inVec(vector<int> vec, int val);
     // mark square if pawn double jumped
     void markShadowPawn(int from, int to);
     // remove the pawn being capture on peasent
-    void removePeasent(int to, PieceColor c);
+    void removePeasent(square to, PieceColor c);
     // handle special interactions
     void handleOnPeasent(int from, int to);
-    void handleCastle(int from, int to);
+    void handleCastle(square from, square to);
     // checks that the king is under attack, returns true if it isn't
     bool legalPosition();
     // checks if current turn player lost
     bool checkMate();
-    
+
+    // Utils
     inline void updateKingIdxCopy(int idx, PieceColor c) {
         int& king = (c == white) ? wKingIdxCopy : bKingIdxCopy;
         king = idx;
@@ -156,9 +167,12 @@ private:
     inline square getSquare(int idx) {
         return {idx % 8, idx / 8};
     }
-    inline bool sameColor(int from, int to){
+    inline bool sameColor(int from, int to) {
         return copy_board[from].color == copy_board[to].color;
-    };
+    }
+    inline bool sameColor(square from, square to) {
+        return sameColor(from.getIdx(), to.getIdx());
+    }
     inline bool sameColor(PieceColor p1, PieceColor p2) {
         return p1 == p2;
     }
@@ -168,13 +182,12 @@ private:
     inline Piece& getPiece(int idx) {
         return copy_board[idx];
     }
-
-    // helper for diagonal moves
-    bool onEdge(int idx);
     void commitKingIdx();
     void resetKingIdxCopy();
     void calcKingIdx();
     void printBoard();
+    void commitPosition();
+    void resetCopyPosition();
 };
 
 #endif

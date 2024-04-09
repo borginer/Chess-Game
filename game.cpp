@@ -1,8 +1,8 @@
 #include "game.hpp"
 
-// static int diagonalMoves2[] = {-9, -7, 7, 9}; 
-// static int horizontalMoves[] = {-8, -1, 1, 8};
-// static int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
+//static int diagonalMoves2[] = {-9, -7, 7, 9}; 
+//static int horizontalMoves[] = {-8, -1, 1, 8};
+//static int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
 //static int blackPawnMoves[] = {8, 0};
 //static int whitePawnMoves[] = {-8, 0};
 //static int blackPawnAttackMoves[] = {7, 9, 0};
@@ -42,20 +42,20 @@ void Game::Move(square from, square to) {
         return;
     }
 
-    if (!checkMove(idx_from, idx_to)) {
+    resetCopyPosition();
+
+    if (!checkMove(from, to)) {
         std::cout << "Invalid Move" << std::endl;
         return;
     }
 
-    // calcKingIdx();
-    resetKingIdxCopy();
     makeMoveOnCopy(idx_from, idx_to);
     
     if (legalPosition()) {
-        board = copy_board;
-        string clr = (turn == white) ? "white" : "black";
+        commitPosition();
         nextTurn();
         if (checkMate()) {
+            string clr = (turn == white) ? "white" : "black";
             cout << clr << " wins" << endl; 
             game_in_progress = false;
         }
@@ -69,14 +69,14 @@ void Game::Move(square from, square to) {
     cout << "Move calc time: " << duration.count() << "ms" << endl;
 }
 
-bool Game::checkMove(int from, int to) {
+bool Game::checkMove(square from, square to) {
     if (!sameColor(getPiece(from).color, turn)) {
         return false;
     }
-    return inVec(possibleMoves(from), to);
+    return inVec(possibleMoves(from), to.getIdx());
 }
 
-vector<int> Game::possibleMoves(int from) {
+vector<int> Game::possibleMoves(square from) {
     switch (getPiece(from).type) {
         case pawn:
             return possiblePawnMoves(from);
@@ -104,14 +104,14 @@ vector<int> Game::possibleMoves(int from) {
     }
 }
 
-void Game::makeMoveOnCopy(int from, int to) {
+void Game::makeMoveOnCopy(square from, square to) {
     switch (getPiece(from).type) {
         case pawn:
-        handleOnPeasent(from, to);
+        handleOnPeasent(from.getIdx(), to.getIdx());
         break;
         case king:
-        handleCastle(from, to);
-        updateKingIdxCopy(to, getPiece(from).color);
+        handleCastle(from.getIdx(), to.getIdx());
+        updateKingIdxCopy(to.getIdx(), getPiece(from).color);
         break;
         default:
         break;
@@ -136,8 +136,7 @@ bool Game::checkMate() {
     copy_board = board;
     for (int idx = 0; idx < squaresAmount; idx++) {
         if (getPiece(idx).color == turn) {
-            copy_board = board;
-            resetKingIdxCopy();
+            resetCopyPosition();
             moves = possibleMoves(idx);
             for (int move : moves) {
                 copy_board = board;
@@ -157,9 +156,8 @@ bool Game::legalPosition() {
     bool whiteAttackMat[64] = {false};
     vector<int> moves;
     Piece p;
-    // cout << "13 type:" << copy_board[13].type << endl;
     for (int idx = 0; idx < squaresAmount; idx++) {
-        moves = possibleMoves(idx);
+        moves = possibleMoves(getSquare(idx));
         for (int move : moves) {
             if (getPiece(idx).color == white) {
                 whiteAttackMat[move] = true;
@@ -205,12 +203,11 @@ bool Game::legalPosition() {
     return true;
 }
 
-vector<int> Game::possibleKnightMoves(int fr) {
+vector<int> Game::possibleKnightMoves(square from) {
     vector<int> ret = {};
-    square from = square(fr);
     square s;
     for (square jump: knightMoves) {
-        if (!sameColor((from + jump).getIdx(), from.getIdx()) && (from + jump).onBoard()) {
+        if (!sameColor((from + jump), from) && (from + jump).onBoard()) {
             ret.push_back((from + jump).getIdx());
         }
     }
@@ -221,14 +218,13 @@ vector<int> Game::possibleKnightMoves(int fr) {
     return ret;
 }
 
-vector<int> Game::possibleBishopMoves(int fr) {
+vector<int> Game::possibleBishopMoves(square from) {
     square idx;
     vector<int> ret = {};
-    square from = square(fr);
     for (square direct: diagonalMoves) {
         idx = from;
         while ((idx += direct).onBoard()) {
-            if (!sameColor(from.getIdx(), idx.getIdx())) {
+            if (!sameColor(from, idx)) {
                 ret.push_back(idx.getIdx());
             }
             if (getPiece(idx.getIdx()).type != EMPTY_TYPE) {
@@ -239,15 +235,14 @@ vector<int> Game::possibleBishopMoves(int fr) {
     return ret;
 }
 
-vector<int> Game::possibleRookMoves(int fr) {
+vector<int> Game::possibleRookMoves(square from) {
     square idx;
     vector<int> ret;
-    square from = square(fr);
     for (square direct : horizontalMoves) {
         idx = from;
         while ((idx + direct).onBoard()) {
             idx += direct;
-            if (!sameColor(from.getIdx(), idx.getIdx())) {
+            if (!sameColor(from, idx)) {
                 ret.push_back(idx.getIdx());
             }
             if (getPiece(idx).type != EMPTY_TYPE) {
@@ -258,45 +253,44 @@ vector<int> Game::possibleRookMoves(int fr) {
     return ret;
 }
 
-vector<int> Game::possibleQueenMoves(int from) {
+vector<int> Game::possibleQueenMoves(square from) {
     vector<int> bishop = possibleBishopMoves(from);
     vector<int> rook = possibleRookMoves(from);
     bishop.insert(bishop.end(), rook.begin(), rook.end());
     return bishop;
 }
 
-vector<int> Game::possibleKingMoves(int fr) {
+vector<int> Game::possibleKingMoves(square from) {
     vector<int> ret;
-    square from = square(fr);
     square idx;
     for (square direct: diagonalMoves) {
         idx = from + direct;
-        if (!sameColor(from.getIdx(), idx.getIdx()) && idx.onBoard()) {
+        if (!sameColor(from, idx) && idx.onBoard()) {
             ret.push_back(idx.getIdx());
         }
     }
 
     for (square direct: horizontalMoves) {
         idx = from + direct;
-        if (!sameColor(from.getIdx(), idx.getIdx()) && idx.onBoard()) {
+        if (!sameColor(from, idx) && idx.onBoard()) {
             ret.push_back(idx.getIdx());
         }
     }
     queen_castle = false;
     king_castle = false;
-    int kingRookIdx = from.getIdx() + 3 * kingSideMove;
+    square kingRookIdx = from + 3 * kingSideMove;
     if (getPiece(from).moved == false && 
-        getPiece(from.getIdx() + kingSideMove).type == EMPTY_TYPE &&
-        getPiece(from.getIdx() + 2 * kingSideMove).type == EMPTY_TYPE &&
+        getPiece(from + kingSideMove).type == EMPTY_TYPE &&
+        getPiece(from + 2 * kingSideMove).type == EMPTY_TYPE &&
         getPiece(kingRookIdx).type == rook &&
         getPiece(kingRookIdx).moved == false) {
             ret.push_back(from.getIdx() + 2 * kingSideMove);
     }
-    int queenRookIdx = from.getIdx() + 4 * queenSideMove;
-    if (getPiece(from.getIdx()).moved == false && 
-        getPiece(from.getIdx() + queenSideMove).type == EMPTY_TYPE &&
-        getPiece(from.getIdx() + 2 * queenSideMove).type == EMPTY_TYPE &&
-        getPiece(from.getIdx() + 3 * queenSideMove).type == EMPTY_TYPE &&
+    square queenRookIdx = from + 4 * queenSideMove;
+    if (getPiece(from).moved == false && 
+        getPiece(from + queenSideMove).type == EMPTY_TYPE &&
+        getPiece(from + 2 * queenSideMove).type == EMPTY_TYPE &&
+        getPiece(from + 3 * queenSideMove).type == EMPTY_TYPE &&
         getPiece(queenRookIdx).type == rook &&
         getPiece(queenRookIdx).moved == false) {
             ret.push_back(from.getIdx() + 2 * queenSideMove);
@@ -304,9 +298,8 @@ vector<int> Game::possibleKingMoves(int fr) {
     return ret;
 }
 
-vector<int> Game::possiblePawnMoves(int fr) {
+vector<int> Game::possiblePawnMoves(square from) {
     vector<int> ret;
-    square from = square(fr);
     square* attack = getPiece(from).color == white ? 
          whitePawnAttackMoves : blackPawnAttackMoves;
     square move = getPiece(from).color == white ?
@@ -315,9 +308,10 @@ vector<int> Game::possiblePawnMoves(int fr) {
     square idx;
     while ((*attack).getIdx() != 0) {
         idx = from + *attack;
-        //cout << "from color: " << getPiece(from).color << " idx color: " << getPiece(idx).color << endl;
-        if ((getPiece(idx).color != EMPTY_PIECE_COLOR || idx.getIdx() == pawn_shadow) && 
-            !sameColor(from.getIdx(), idx.getIdx()) && idx.onBoard()) { 
+        cout << "from color: " << getPiece(from).color << " idx color: " << getPiece(idx).color << endl;
+        cout << "shadow: " << pawn_shadow_copy << endl;
+        if ((getPiece(idx).color != EMPTY_PIECE_COLOR || idx.getIdx() == pawn_shadow_copy) && 
+            !sameColor(from, idx) && idx.onBoard()) { 
                 ret.push_back(idx.getIdx());
         }
         attack++;
@@ -357,28 +351,30 @@ void Game::handleOnPeasent(int from, int to) {
 }
 
 void Game::markShadowPawn(int from, int to) {
-    pawn_shadow = -1;
+    pawn_shadow_copy = -1;
 
     square move = getPiece(from).color == white ?
          whitePawnMoves : blackPawnMoves; 
 
     if (from + 2*(move.getIdx()) == to) {
-        pawn_shadow = from + move.getIdx();
+        pawn_shadow_copy = from + move.getIdx();
+        cout << "mark shadow pawn: " << pawn_shadow_copy << " color: " << getPiece(from).color << endl;
     }
 }
 
-void Game::removePeasent(int to, PieceColor c) {
-    if (to == pawn_shadow) {
+void Game::removePeasent(square to, PieceColor c) {
+    cout << "shadow: " << pawn_shadow_copy << " to idx: " << to.getIdx() << endl;
+    if (to.getIdx() == pawn_shadow_copy) {
         square move = (c == white) ?
             whitePawnMoves : blackPawnMoves;
-        int idx = to - move.getIdx();
+        square idx = to - move;
         getPiece(idx).type = EMPTY_TYPE;
         getPiece(idx).color = EMPTY_PIECE_COLOR;    
     }
 }
 
-void Game::handleCastle(int from, int to) {
-    int rookIdx;
+void Game::handleCastle(square from, square to) {
+    square rookIdx;
     king_castle = false;
     queen_castle = false;
     if (from + 2 * kingSideMove == to) {
@@ -396,11 +392,6 @@ void Game::handleCastle(int from, int to) {
         getPiece(rookIdx).color = EMPTY_PIECE_COLOR;
         queen_castle = true;
     }
-}
-
-bool Game::onEdge(int idx) {
-    square s = getSquare(idx);
-    return s.x == 0 || s.x == 7 || s.y == 0 || s.y == 7;
 }
 
 void Game::setup() {
@@ -452,6 +443,18 @@ void Game::commitKingIdx() {
 void Game::resetKingIdxCopy() {
     wKingIdxCopy = wKingIdx;
     bKingIdxCopy = bKingIdx;
+}
+
+void Game::commitPosition() {
+    board = copy_board;
+    commitKingIdx();
+    pawn_shadow = pawn_shadow_copy;
+}
+
+void Game::resetCopyPosition() {
+    copy_board = board;
+    resetKingIdxCopy();
+    pawn_shadow_copy = pawn_shadow;
 }
 
 void Game::printBoard(){
