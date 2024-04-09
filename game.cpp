@@ -1,12 +1,7 @@
 #include "game.hpp"
 
-//static int diagonalMoves2[] = {-9, -7, 7, 9}; 
-//static int horizontalMoves[] = {-8, -1, 1, 8};
-//static int knightMoves[] = {-17, -15, -10, -6, 6, 10, 15, 17};
-//static int blackPawnMoves[] = {8, 0};
-//static int whitePawnMoves[] = {-8, 0};
-//static int blackPawnAttackMoves[] = {7, 9, 0};
-//static int whitePawnAttackMoves[] = {-7, -9, 0};
+static chrono::time_point start = std::chrono::time_point<std::chrono::system_clock>::min();
+static chrono::time_point reference = std::chrono::time_point<std::chrono::system_clock>::min(); // pain
 
 square knightMoves[] = {{-2, -1}, {-2, 1}, {2, -1}, {2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}}; 
 square diagonalMoves[] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
@@ -20,53 +15,35 @@ square whitePawnMoves = {0, -1};
 #define queenSideMove -1
 #define squaresAmount 64
 
-Game::Game(){
-    this->copy_board = array<Piece, 64>();
-    this->board = array<Piece, 64>();
-    setup();
-}
-
 void Game::Move(square from, square to) {
-    auto start = chrono::high_resolution_clock::now();
-    int idx_from = from.getIdx();
-    int idx_to = to.getIdx();
-    copy_board = board;
-    
+    time();
+    resetCopyPosition();
     if (!game_in_progress) {
         cout << "Game Ended" << endl;
         return;
     }
-
     if (!from.onBoard() || !to.onBoard() || from == to) {
         std::cout << "Square out of bounds" << std::endl;
+        time();
         return;
     }
-
-    resetCopyPosition();
-
     if (!checkMove(from, to)) {
         std::cout << "Invalid Move" << std::endl;
+        time();
         return;
     }
 
-    makeMoveOnCopy(idx_from, idx_to);
-    
+    makeMoveOnCopy(from, to);
     if (legalPosition()) {
         commitPosition();
         nextTurn();
         if (checkMate()) {
-            string clr = (turn == white) ? "white" : "black";
-            cout << clr << " wins" << endl; 
-            game_in_progress = false;
+            stopGame();
         }
-    }
-    else {
+    } else {
         printf("ilegal position reached\n");
     }
-
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double, milli> duration = end - start;
-    cout << "Move calc time: " << duration.count() << "ms" << endl;
+    time();
 }
 
 bool Game::checkMove(square from, square to) {
@@ -138,11 +115,11 @@ bool Game::checkMate() {
         if (getPiece(idx).color == turn) {
             resetCopyPosition();
             moves = possibleMoves(idx);
+
             for (int move : moves) {
-                copy_board = board;
+                resetCopyPosition();
                 makeMoveOnCopy(idx, move);
                 if (legalPosition()) {
-                    // cout << idx << " move: " << move << endl;
                     return false;
                 }
             }
@@ -167,6 +144,7 @@ bool Game::legalPosition() {
             }
         }
     }
+
     if ((turn == black && whiteAttackMat[bKingIdxCopy]) || 
         (turn == white && blackAttackMat[wKingIdxCopy])) {
         king_castle = false;
@@ -195,11 +173,6 @@ bool Game::legalPosition() {
         queen_castle = false;
         return false;
     }
-    // cout << endl << "white:" << endl;
-    // printMat(whiteAttackMat);
-    // cout << endl << "black:" << endl;
-    // printMat(blackAttackMat);
-    // cout << "black king idx: " << bKingIdxCopy << endl;
     return true;
 }
 
@@ -211,10 +184,6 @@ vector<int> Game::possibleKnightMoves(square from) {
             ret.push_back((from + jump).getIdx());
         }
     }
-    // cout << "x: " << from.x << "y: " << from.y << endl;
-    // for (int x : ret) {
-    //     cout << x << " ";
-    // }
     return ret;
 }
 
@@ -304,12 +273,10 @@ vector<int> Game::possiblePawnMoves(square from) {
          whitePawnAttackMoves : blackPawnAttackMoves;
     square move = getPiece(from).color == white ?
          whitePawnMoves : blackPawnMoves;
-
     square idx;
+
     while ((*attack).getIdx() != 0) {
         idx = from + *attack;
-        cout << "from color: " << getPiece(from).color << " idx color: " << getPiece(idx).color << endl;
-        cout << "shadow: " << pawn_shadow_copy << endl;
         if ((getPiece(idx).color != EMPTY_PIECE_COLOR || idx.getIdx() == pawn_shadow_copy) && 
             !sameColor(from, idx) && idx.onBoard()) { 
                 ret.push_back(idx.getIdx());
@@ -319,10 +286,9 @@ vector<int> Game::possiblePawnMoves(square from) {
 
     square normal_move = from + move;
     square double_jump = from + move + move;
-
+    
     bool blocked = getPiece(normal_move).type != EMPTY_TYPE;
-    bool jump_blocked = getPiece(double_jump).type != EMPTY_TYPE;
-        
+    bool jump_blocked = getPiece(double_jump).type != EMPTY_TYPE;    
     bool can_double_jump = !getPiece(from).moved && !blocked && !jump_blocked;
 
     if (!blocked && normal_move.onBoard()) {
@@ -358,15 +324,14 @@ void Game::markShadowPawn(int from, int to) {
 
     if (from + 2*(move.getIdx()) == to) {
         pawn_shadow_copy = from + move.getIdx();
-        cout << "mark shadow pawn: " << pawn_shadow_copy << " color: " << getPiece(from).color << endl;
     }
 }
 
 void Game::removePeasent(square to, PieceColor c) {
-    cout << "shadow: " << pawn_shadow_copy << " to idx: " << to.getIdx() << endl;
     if (to.getIdx() == pawn_shadow_copy) {
         square move = (c == white) ?
             whitePawnMoves : blackPawnMoves;
+        
         square idx = to - move;
         getPiece(idx).type = EMPTY_TYPE;
         getPiece(idx).color = EMPTY_PIECE_COLOR;    
@@ -377,6 +342,7 @@ void Game::handleCastle(square from, square to) {
     square rookIdx;
     king_castle = false;
     queen_castle = false;
+    
     if (from + 2 * kingSideMove == to) {
         rookIdx = from + 3 * kingSideMove;
         getPiece(from + kingSideMove) = getPiece(rookIdx);
@@ -419,7 +385,6 @@ void Game::setup() {
     bKingIdx = 4;
     wKingIdx = 60;
     game_in_progress = true;
-
 }
 
 void Game::calcKingIdx() {
@@ -430,7 +395,6 @@ void Game::calcKingIdx() {
             } else {
                 wKingIdx = i;
             }
-
         }
     }
 }
@@ -457,6 +421,18 @@ void Game::resetCopyPosition() {
     pawn_shadow_copy = pawn_shadow;
 }
 
+void Game::stopGame() {
+    string winner = (turn == white) ? "black" : "white";
+    cout << winner << " wins" << endl; 
+    game_in_progress = false;
+}
+
+Game::Game(){
+    this->copy_board = array<Piece, 64>();
+    this->board = array<Piece, 64>();
+    setup();
+}
+
 void Game::printBoard(){
     cout << "types:" << endl;
     for (int i = 0; i < 8; i++) {
@@ -464,12 +440,23 @@ void Game::printBoard(){
             cout << getPiece(i * 8 + j).type << " ";
         }
         cout << endl;
-    }
+    }   
     cout << "colors:" << endl;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             cout << getPiece(i * 8 + j).color << " ";
         }
         cout << endl;
+    }
+}
+
+void Game::time() {
+    if (start != reference) {
+        auto end = chrono::high_resolution_clock::now();
+        chrono::duration<double, milli> duration = end - start;
+        cout << "Move calc time: " << duration.count() << "ms" << endl;
+        start = std::chrono::time_point<std::chrono::system_clock>::min();
+    } else {
+        start = chrono::high_resolution_clock::now();
     }
 }
