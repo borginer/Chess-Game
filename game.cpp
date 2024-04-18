@@ -1,8 +1,5 @@
 #include "game.hpp"
 
-static chrono::time_point start = std::chrono::time_point<std::chrono::system_clock>::min();
-static chrono::time_point reference = std::chrono::time_point<std::chrono::system_clock>::min(); // pain
-
 Square knightMoves[] = {{-2, -1}, {-2, 1}, {2, -1}, {2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}}; 
 Square diagonalMoves[] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
 Square horizontalMoves[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
@@ -16,7 +13,8 @@ Square whitePawnMoves = {0, -1};
 #define squaresAmount 64
 
 void Game::Move(Square from, Square to) {
-    time();
+    auto start = chrono::high_resolution_clock::now();
+
     resetCopyPosition();
     if (!game_in_progress) {
         cout << "Game Ended" << endl;
@@ -24,12 +22,10 @@ void Game::Move(Square from, Square to) {
     }
     if (!from.onBoard() || !to.onBoard() || from == to) {
         std::cout << "Square out of bounds" << std::endl;
-        time();
         return;
     }
     if (!checkMove(from, to)) {
         std::cout << "Invalid Move" << std::endl;
-        time();
         return;
     }
 
@@ -43,7 +39,10 @@ void Game::Move(Square from, Square to) {
     } else {
         printf("ilegal position reached\n");
     }
-    time();
+    
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double, milli> duration = (end - start);
+    cout << "Move calc time: " << duration.count() << "ms" << endl; 
 }
 
 
@@ -147,7 +146,6 @@ bool Game::legalPosition() {
             }
         }
     }
-
     if ((turn == black && whiteAttackMat[bKingIdxCopy]) || 
         (turn == white && blackAttackMat[wKingIdxCopy])) {
         king_castle = false;
@@ -183,9 +181,8 @@ bool Game::legalPosition() {
 
 vector<int> Game::possibleKnightMoves(Square from) {
     vector<int> ret = {};
-    Square s;
     for (Square jump: knightMoves) {
-        if (!sameColor((from + jump), from) && (from + jump).onBoard()) {
+        if ((from + jump).onBoard() && !sameColor((from + jump), from)) {
             ret.push_back((from + jump).getIdx());
         }
     }
@@ -243,14 +240,14 @@ vector<int> Game::possibleKingMoves(Square from) {
     Square idx;
     for (Square direct: diagonalMoves) {
         idx = from + direct;
-        if (!sameColor(from, idx) && idx.onBoard()) {
+        if (idx.onBoard() && !sameColor(from, idx)) {
             ret.push_back(idx.getIdx());
         }
     }
 
     for (Square direct: horizontalMoves) {
         idx = from + direct;
-        if (!sameColor(from, idx) && idx.onBoard()) {
+        if (idx.onBoard() && !sameColor(from, idx)) {
             ret.push_back(idx.getIdx());
         }
     }
@@ -287,8 +284,9 @@ vector<int> Game::possiblePawnMoves(Square from) {
 
     while ((*attack).getIdx() != 0) {
         idx = from + *attack;
-        if ((getPiece(idx).color != EMPTY_PIECE_COLOR || idx == pawn_shadow_copy) && 
-            !sameColor(from, idx) && idx.onBoard()) { 
+        if (idx.onBoard() && (getPiece(idx).color != 
+            EMPTY_PIECE_COLOR || idx == pawn_shadow_copy) && 
+            !sameColor(from, idx)) { 
                 ret.push_back(idx.getIdx());
         }
         attack++;
@@ -466,17 +464,5 @@ void Game::printBoard(){
             cout << getPiece(i * 8 + j).color << " ";
         }
         cout << endl;
-    }
-}
-
-
-void Game::time() {
-    if (start != reference) {
-        auto end = chrono::high_resolution_clock::now();
-        chrono::duration<double, milli> duration = end - start;
-        cout << "Move calc time: " << duration.count() << "ms" << endl;
-        start = std::chrono::time_point<std::chrono::system_clock>::min();
-    } else {
-        start = chrono::high_resolution_clock::now();
     }
 }

@@ -190,7 +190,6 @@ private:
     void commitPosition();
     void resetCopyPosition();
     void stopGame();
-    void time();
 };
 
 #endif
