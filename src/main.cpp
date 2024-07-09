@@ -6,7 +6,7 @@
 
 using std::vector;
 
-int main(){
+void run_game() {
     InitWindow(screenWidth, screenHeight, "Chess Simulator");
 
     Game g{};
@@ -42,6 +42,10 @@ int main(){
         EndDrawing();
     }
     CloseWindow();
+}
+
+int main() {
+    run_game();
 }
 
 

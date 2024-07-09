@@ -1,23 +1,33 @@
-CXX=g++
-CXXLINK=$(CXX)
-CXXFLAGS=-std=c++17 -Wall -O2
-LIBRAYFLAGS= -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
-OBJS = game.o main.o graphics.o
-RM= rm -rf *.o chess
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -O2
+LIBRAYFLAGS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+LDFLAGS = -L/usr/local/lib
 
-#chess.exe: main.o
-#	$(CXX) $(CXXFLAGS) $(LIBRAYFLAGS) -L/usr/local/lib -lraylib $(OBJS) -o chess.exe 
-chess: main.o
-	$(CXX) $(CXXFLAGS) $(OBJS) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o chess
+SRCDIR = src
+OBJDIR = obj
+BINDIR = bin
 
-main.o: game.o graphics.o main.cpp
-	$(CXX) $(CXXFLAGS) -c main.cpp
+SOURCES = $(wildcard $(SRCDIR)/*.cpp)
+OBJECTS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
+TARGET = $(BINDIR)/chess
 
-graphics.o: game.o graphics.hpp graphics.cpp
-	$(CXX) $(CXXFLAGS) -c graphics.cpp
+all: $(TARGET)
 
-game.o: game.hpp game.cpp
-	$(CXX) $(CXXFLAGS) -c game.cpp
+$(TARGET): $(OBJECTS) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) $(LIBRAYFLAGS) $(LDFLAGS) \
+	-lraylib $(OBJDIR)/*.o -o $(TARGET)
+	
+#$(TARGET): main.o
+#	$(CXX) $(CXXFLAGS) $(OBJS) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o chess
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(BINDIR): 
+	@mkdir -p $(BINDIR)
+
+$(OBJDIR): 
+	@mkdir -p $(OBJDIR)
 
 clean:
-	$(RM)
+	rm -rf $(OBJDIR) $(BINDIR)
