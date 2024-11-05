@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -O2
+CXXFLAGS = -std=c++17 -Wall -O3
 LIBRAYFLAGS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 LDFLAGS = -L/usr/local/lib
 
@@ -28,6 +28,12 @@ $(BINDIR):
 
 $(OBJDIR): 
 	@mkdir -p $(OBJDIR)
+
+run: all
+	./$(TARGET)
+
+crun: clean all
+	./$(TARGET)
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)

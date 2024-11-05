@@ -8,6 +8,12 @@
 
 using namespace std;
 
+const int boardSize = 800;
+const int sideBarSize = 20;
+const int screenWidth = boardSize + 2 * sideBarSize;
+const int screenHeight = boardSize + 2 * sideBarSize;
+const int figureSize = boardSize / 8;
+
 const int pieces_amount = 12;
 
 class Graphics {
