@@ -1,7 +1,8 @@
 #include "raylib.h"
 #include <vector>
 #include <cmath>
-#include "game.hpp"
+
+#include "../engine/game.hpp"
 #include "graphics.hpp"
 
 using std::vector;
@@ -21,6 +22,9 @@ void run_game() {
     while (!WindowShouldClose()) {
         BeginDrawing();
 
+        if (IsKeyPressed(KEY_U)) {
+            g.UndoMove();
+        }
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             Vector2 pos = GetMousePosition();
             x = std::floor((pos.x - sideBarSize) / figureSize);

@@ -18,17 +18,25 @@ enum move_result {
     move_invalid,
 };
 
-// struct move_log {
-//     int from;
-//     int to;
-//     Piece taken;
-// };
+struct move_log {
+    Square from;
+    Square to;
+    Piece moved;
+    Piece taken;
+
+    friend ostream& operator<<(ostream& os, const move_log& log) {
+        return os << "From: (" << log.from.x << ',' << log.from.y << ')'
+        << " To: (" << log.to.x << ',' << log.to.y << ')' << endl
+        << "Piece: type - " << log.taken.type << " color - " << log.taken.color;
+    };
+};
 
 class Game{
 private:
     GameState game;
     GameState game_copy;
 
+    vector<move_log> move_hist;
     bool game_in_progress;
     PieceColor turn;
     bool queen_castle = false;
@@ -36,8 +44,6 @@ private:
 
     // check if the move is legal
     bool checkMove(Square from, Square to);
-    void moveOnGameStateCopy(Square from, Square to);
-
     // find all possible moves for every piece
     vector<int> possibleMoves(Square from);
     // helpers for possibleMoves
@@ -60,19 +66,15 @@ private:
     bool legalPosition();
     // checks if current turn player lost
     bool checkMate();
-
-    // Utils
-    inline void nextTurn() {
-        turn = turn == white ? black : white;
-    }
-    void commitKingIdx();
-    void resetKingIdxCopy();
-    void calcKingIdx();
-    void printBoard();
+    void moveOnGameStateCopy(Square from, Square to);
     void commitGameState();
     void resetGameStateCopy();
     void stopGame();
-
+    void addMoveToHist(Square from, Square to);
+    void printHist();
+    inline void switchTurn() {
+        turn = turn == white ? black : white;
+    }
     move_result doMove(Square, Square);
 
     public:
@@ -80,7 +82,9 @@ private:
     // checks legality 
     move_result Move(Square, Square);
     move_result Move(int, int);
-    array<Piece, BOARD_SIZE> GetBoard() const {return game.Board();};
+    void UndoMove();
+
+    const array<Piece, BOARD_SIZE>& GetBoard() const {return game.Board();};
 };
 
 #endif

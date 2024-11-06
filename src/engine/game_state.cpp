@@ -5,10 +5,17 @@ Piece::Piece() {
     this->color = EMPTY_PIECE_COLOR;
     this->moved = false;
 }
+
 Piece::Piece(PieceColor c, Type t) {
     this->type = t;
     this->color = c;
     this->moved = false;
+}
+
+Piece::Piece(const Piece& other) {
+    this->type = other.type;
+    this->color = other.color;
+    this->moved = other.moved;
 }
 
 GameState::GameState() {
@@ -19,9 +26,6 @@ GameState::GameState() {
 }
 
 void GameState::setup() { 
-    for (Piece& p: board) {
-        p = {EMPTY_PIECE_COLOR, EMPTY_TYPE};
-    }
     //rooks
     board[0] = {black, rook}; board[7] = {black, rook};
     board[56] = {white, rook}; board[63] = {white, rook};
@@ -41,4 +45,11 @@ void GameState::setup() {
 
     bKingIdx = 4;
     wKingIdx = 60;
+}
+
+void GameState::operator=(GameState& other) {
+    this->SetBoard(other.Board());
+    this->updateKingIdx(other.getKingIdx(white), white);
+    this->updateKingIdx(other.getKingIdx(black), black);
+    this->SetPawnShadow(other.PawnShadow());
 }

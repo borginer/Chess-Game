@@ -1,10 +1,11 @@
 #ifndef GRAPHICS_HPP
 #define GRAPHICS_HPP
 
-#include "game.hpp"
-#include "raylib.h"
 #include <map>
 #include <vector>
+
+#include "raylib.h"
+#include "../engine/game.hpp"
 
 using namespace std;
 

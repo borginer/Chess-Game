@@ -41,8 +41,10 @@ move_result Game::doMove(Square from, Square to) {
 
     moveOnGameStateCopy(from, to);
     if (legalPosition()) {
+        addMoveToHist(from, to);
+        printHist();
         commitGameState();
-        nextTurn();
+        switchTurn();
         if (checkMate()) {
             stopGame();
         }
@@ -418,40 +420,12 @@ Game::Game() {
     this->game_in_progress = true;
 }
 
-
-void Game::calcKingIdx() {
-    for (int i = 0; i < squaresAmount; i++) {
-        if (game[i].type == king) {
-            if (game[i].color == black) {
-                game.updateKingIdx(i, black);
-            } else {
-                game.updateKingIdx(i, white);
-            }
-        }
-    }
-}
-
-
-void Game::commitKingIdx() {
-    game.updateKingIdx(game_copy.getKingIdx(white), white);
-    game.updateKingIdx(game_copy.getKingIdx(black), black);
-}
-
-void Game::resetKingIdxCopy() {
-    game_copy.updateKingIdx(game.getKingIdx(white), white);
-    game_copy.updateKingIdx(game.getKingIdx(black), black);
-}
-
 void Game::commitGameState() {
-    game.SetBoard(game_copy.Board());
-    commitKingIdx();
-    game.SetPawnShadow(game_copy.PawnShadow());
+    game = game_copy;
 }
 
 void Game::resetGameStateCopy() {
-    game_copy.SetBoard(game.Board());
-    resetKingIdxCopy();
-    game_copy.SetPawnShadow(game.PawnShadow());
+    game_copy = game;
 }
 
 void Game::stopGame() {
@@ -459,21 +433,29 @@ void Game::stopGame() {
     cout << winner << " wins" << endl; 
     game_in_progress = false;
 }
-// for debuging
-void Game::printBoard(){
-    cout << "types:" << endl;
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            cout << game_copy[i * 8 + j].type << " ";
-        }
-        cout << endl;
-    }   
-    
-    cout << "colors:" << endl;
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            cout << game_copy[i * 8 + j].color << " ";
-        }
-        cout << endl;
+
+void Game::addMoveToHist(Square from, Square to) {
+    move_log newMove = { from, to, game[from], game[to] };
+    this->move_hist.push_back(newMove);
+}
+
+void Game::printHist() {
+    for (move_log& move: move_hist) {
+        cout << move << endl;
     }
+}
+
+void Game::UndoMove() {
+    move_log lastMove;
+    if (!move_hist.empty()) {
+        lastMove = move_hist.back();
+    } else {
+        return;
+    }
+    switchTurn();
+
+    game[lastMove.from] = lastMove.moved;
+    game[lastMove.to] = lastMove.taken;
+    move_hist.pop_back();
+
 }
