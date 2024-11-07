@@ -2,8 +2,8 @@
 #include <vector>
 #include <cmath>
 
-#include "../engine/game.hpp"
-#include "graphics.hpp"
+#include "engine/game.hpp"
+#include "interface/graphics.hpp"
 
 using std::vector;
 

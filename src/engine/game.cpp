@@ -42,7 +42,6 @@ move_result Game::doMove(Square from, Square to) {
     moveOnGameStateCopy(from, to);
     if (legalPosition()) {
         addMoveToHist(from, to);
-        printHist();
         commitGameState();
         switchTurn();
         if (checkMate()) {

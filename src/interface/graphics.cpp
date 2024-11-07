@@ -2,6 +2,8 @@
 
 Piece EMPTY_PIECE = Piece{EMPTY_PIECE_COLOR, EMPTY_TYPE};
 
+#define PATH_TO_ROOT "../"
+
 Graphics::Graphics(){
     vector<Image> piece_images = LoadPieceImages();
     this->piece_textures = LoadPieceTextures(piece_images);
@@ -55,19 +57,19 @@ vector<Texture2D> Graphics::LoadOtherTextures(vector<Image>& images) {
 vector<Image> Graphics::LoadPieceImages() {
     vector<Image> images(pieces_amount);
 
-    images[PieceIdx(white, king)]   = LoadImage("resources/wKing.png");
-    images[PieceIdx(white, queen)]  = LoadImage("resources/wQueen.png");
-    images[PieceIdx(white, rook)]   = LoadImage("resources/wRook.png");
-    images[PieceIdx(white, bishop)] = LoadImage("resources/wBishop.png");
-    images[PieceIdx(white, knight)] = LoadImage("resources/wKnight.png");
-    images[PieceIdx(white, pawn)]   = LoadImage("resources/wPawn.png");
+    images[PieceIdx(white, king)]   = LoadImage(PATH_TO_ROOT"resources/wKing.png");
+    images[PieceIdx(white, queen)]  = LoadImage(PATH_TO_ROOT"resources/wQueen.png");
+    images[PieceIdx(white, rook)]   = LoadImage(PATH_TO_ROOT"resources/wRook.png");
+    images[PieceIdx(white, bishop)] = LoadImage(PATH_TO_ROOT"resources/wBishop.png");
+    images[PieceIdx(white, knight)] = LoadImage(PATH_TO_ROOT"resources/wKnight.png");
+    images[PieceIdx(white, pawn)]   = LoadImage(PATH_TO_ROOT"resources/wPawn.png");
 
-    images[PieceIdx(black, king)]   = LoadImage("resources/bKing.png");
-    images[PieceIdx(black, queen)]  = LoadImage("resources/bQueen.png");
-    images[PieceIdx(black, rook)]   = LoadImage("resources/bRook.png");
-    images[PieceIdx(black, bishop)] = LoadImage("resources/bBishop.png");
-    images[PieceIdx(black, knight)] = LoadImage("resources/bKnight.png");
-    images[PieceIdx(black, pawn)]   = LoadImage("resources/bPawn.png");
+    images[PieceIdx(black, king)]   = LoadImage(PATH_TO_ROOT"resources/bKing.png");
+    images[PieceIdx(black, queen)]  = LoadImage(PATH_TO_ROOT"resources/bQueen.png");
+    images[PieceIdx(black, rook)]   = LoadImage(PATH_TO_ROOT"resources/bRook.png");
+    images[PieceIdx(black, bishop)] = LoadImage(PATH_TO_ROOT"resources/bBishop.png");
+    images[PieceIdx(black, knight)] = LoadImage(PATH_TO_ROOT"resources/bKnight.png");
+    images[PieceIdx(black, pawn)]   = LoadImage(PATH_TO_ROOT"resources/bPawn.png");
 
     ResizeImages(images, figureSize, figureSize);
     return images;
@@ -75,7 +77,7 @@ vector<Image> Graphics::LoadPieceImages() {
 
 vector<Image> Graphics::LoadOtherImages() {
     vector<Image> images(1);
-    images[board_txt] = LoadImage("resources/board.png");
+    images[board_txt] = LoadImage(PATH_TO_ROOT"resources/board.png");
     ResizeImages(images, boardSize, boardSize);
     return images;
 }
