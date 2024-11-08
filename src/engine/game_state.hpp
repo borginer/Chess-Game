@@ -96,6 +96,8 @@ class GameState {
     int bKingIdx = -1;
     int wKingIdx = -1;
 
+void set_piece(Square s, Piece p);
+
 public:
     GameState();
     void operator=(GameState &other);

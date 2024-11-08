@@ -4,10 +4,10 @@ static Square knightMoves[] = {{-2, -1}, {-2, 1}, {2, -1}, {2, 1},
                                {-1, -2}, {-1, 2}, {1, -2}, {1, 2}}; 
 static Square diagonalMoves[] = {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}};
 static Square horizontalMoves[] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-static Square blackPawnAttackMoves[] = {{-1, 1}, {1, 1}, {0, 0}};
-static Square whitePawnAttackMoves[] = {{-1, -1}, {1, -1}, {0, 0}};
-static Square blackPawnMoves = {0, 1};
-static Square whitePawnMoves = {0, -1};
+static Square blackPawnAttackMoves[] = {{-1, -1}, {1, -1}, {0, 0}};
+static Square whitePawnAttackMoves[] = {{-1, 1}, {1, 1}, {0, 0}};
+static Square blackPawnMoves = {0, -1};
+static Square whitePawnMoves = {0, 1};
 
 #define kingSideMove 1
 #define queenSideMove -1
@@ -30,11 +30,11 @@ move_result Game::doMove(Square from, Square to) {
         cout << "Game Ended" << endl;
         return move_game_over;
     }
-    if (!from.onBoard() || !to.onBoard() || from == to) {
+    if (!from.onBoard() || !to.onBoard()) {
         std::cout << "Square out of bounds" << std::endl;
         return move_out_of_bounds;
     }
-    if (!checkMove(from, to)) {
+    if (from == to || !checkMove(from, to)) {
         std::cout << "Invalid Move" << std::endl;
         return move_invalid;
     }
@@ -42,6 +42,7 @@ move_result Game::doMove(Square from, Square to) {
     moveOnGameStateCopy(from, to);
     if (legalPosition()) {
         addMoveToHist(from, to);
+        printHist();
         commitGameState();
         switchTurn();
         if (checkMate()) {
@@ -56,8 +57,11 @@ move_result Game::doMove(Square from, Square to) {
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double, milli> duration = (end - start);
     cout << "Move calc time: " << duration.count() << "ms" << endl;
-
-    return move_success; 
+    if (game_in_progress) {
+        return move_success; 
+    } else {
+        return move_game_over;
+    }
 }
 
 
@@ -456,5 +460,12 @@ void Game::UndoMove() {
     game[lastMove.from] = lastMove.moved;
     game[lastMove.to] = lastMove.taken;
     move_hist.pop_back();
+}
 
+bool Game::IsOver() {
+    return not game_in_progress;
+}
+
+PieceColor Game::WhoseTurn() {
+    return turn;
 }

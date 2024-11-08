@@ -30,7 +30,19 @@ target_include_directories(chess PUBLIC "${SRC_DIR}" "${PROJECT_BINARY_DIR}"
     "${RAYLIB_INCLUDE_DIR}")
 target_link_libraries(chess raylib)
 
-add_executable(tests ${ALL_SOURCES} src/tests.cpp)
-target_include_directories(tests PUBLIC "${SRC_DIR}" "${PROJECT_BINARY_DIR}"
-    "${RAYLIB_INCLUDE_DIR}")
-target_link_libraries(tests raylib)
+find_package(GTest REQUIRED)
+if(GTest_FOUND)
+    enable_testing()
+
+    add_executable(engine_tests ${ENGINE_SOURCES} src/tests.cpp)
+    target_include_directories(engine_tests PUBLIC "${SRC_DIR}" "${PROJECT_BINARY_DIR}")
+    target_link_libraries(engine_tests GTest::GTest GTest::Main)
+
+    # adds whole exe as single test
+    # add_test(NAME EngineTests COMMAND engine_tests)
+
+    include(GoogleTest)
+    gtest_discover_tests(engine_tests)
+else()
+    message(WARNING "Google Test not found. Not building tests")
+endif()

@@ -32,12 +32,12 @@ void run_game() {
             if (piece_pressed) {
                 piece_pressed = false;
                 graphic.SetMarkedSquare({-1, -1});
-                g.Move(from, {x, y});
+                g.Move(from, {x, 7 - y});
             }
             else {
                 piece_pressed = true;
                 graphic.SetMarkedSquare({x, y});
-                from = {x, y};
+                from = {x, 7 - y};
             }
         }
         ClearBackground({103, 43, 0});

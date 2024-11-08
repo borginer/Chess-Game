@@ -82,6 +82,8 @@ private:
     // checks legality 
     move_result Move(Square, Square);
     move_result Move(int, int);
+    bool IsOver();
+    PieceColor WhoseTurn();
     void UndoMove();
 
     const array<Piece, BOARD_SIZE>& GetBoard() const {return game.Board();};

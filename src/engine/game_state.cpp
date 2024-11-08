@@ -25,26 +25,38 @@ GameState::GameState() {
     wKingIdx = -1;
 }
 
+void GameState::set_piece(Square s, Piece p) {
+    board[s.getIdx()] = p;
+}
+
 void GameState::setup() { 
     //rooks
-    board[0] = {black, rook}; board[7] = {black, rook};
-    board[56] = {white, rook}; board[63] = {white, rook};
+    set_piece({7, 7}, {black, rook});
+    set_piece({0, 7}, {black, rook});
+    set_piece({0, 0}, {white, rook});
+    set_piece({7, 0}, {white, rook});
     //knights
-    board[1] = {black, knight}; board[6] = {black, knight};
-    board[57] = {white, knight}; board[62] = {white, knight};
+    set_piece({1, 7}, {black, knight});
+    set_piece({6, 7}, {black, knight});
+    set_piece({1, 0}, {white, knight});
+    set_piece({6, 0}, {white, knight});
     //bishops
-    board[2] = {black, bishop}; board[5] = {black, bishop};
-    board[58] = {white, bishop}; board[61] = {white, bishop};
+    set_piece({2, 7}, {black, bishop});
+    set_piece({5, 7}, {black, bishop});
+    set_piece({2, 0}, {white, bishop});
+    set_piece({5, 0}, {white, bishop});
     //queens
-    board[3] = {black, queen}; board[59] = {white, queen};
+    set_piece({3, 7}, {black, queen});
+    set_piece({3, 0}, {white, queen});
     //kings
-    board[4] = {black, king}; board[60] = {white, king};
+    set_piece({4, 7}, {black, king});
+    set_piece({4, 0}, {white, king});
     //pawns
-    for(int i = 8; i < 16; ++i) board[i] = {black, pawn};
-    for(int i = 48; i < 56; ++i) board[i] = {white, pawn};
+    for(int i = 0; i < 8; ++i) set_piece({i, 6}, {black, pawn});
+    for(int i = 0; i < 8; ++i) set_piece({i, 1}, {white, pawn});
 
-    bKingIdx = 4;
-    wKingIdx = 60;
+    wKingIdx = 4;
+    bKingIdx = 60;
 }
 
 void GameState::operator=(GameState& other) {

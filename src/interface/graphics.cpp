@@ -29,7 +29,8 @@ void Graphics::DrawGame(const Game& game) {
             if (p != EMPTY_PIECE) {
                 DrawTexture(piece_textures[PieceIdx(p.color, p.type)], 
                             sideBarSize + col * figureSize,
-                            sideBarSize + row * figureSize, WHITE);
+                            boardSize + sideBarSize - figureSize -
+                             row * figureSize, WHITE);
             }
         }
     }
