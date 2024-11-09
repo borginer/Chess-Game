@@ -97,3 +97,58 @@ TEST(BasicIntegration, InvalidKingMoves) {
 
     EXPECT_EQ(all_invalid, true);
 }
+
+TEST(BasicIntegration, BasicMultiMovesSuccess) {
+    Game game{};
+    vector<MovePair> moves = {
+        {{4, 1}, {4, 3}}, {{4, 6}, {4, 4}}, {{5, 0}, {2, 3}}, 
+        {{5, 7}, {2, 4}}, {{3, 0}, {7, 4}}, {{6, 7}, {5, 5}}, 
+        {{7, 4}, {5, 6}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_game_over);
+    EXPECT_EQ(game.IsOver(), true);
+}
+
+TEST(BasicIntegration, BasicMultiMovesFail) {
+    Game game{};
+    vector<MovePair> moves = {
+        {{4, 1}, {4, 3}}, {{4, 6}, {4, 4}}, {{5, 0}, {2, 3}}, 
+        {{5, 7}, {2, 4}}, {{3, 0}, {7, 5}}, {{6, 7}, {5, 5}}, 
+        {{7, 4}, {5, 6}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_invalid);
+    EXPECT_EQ(game.IsOver(), false);
+}
+
+TEST(BasicIntegration, BasicOnPassant) {
+    Game game{};
+    vector<MovePair> moves = {
+        {{4, 1}, {4, 3}}, {{4, 6}, {4, 5}}, {{4, 3}, {4, 4}}, 
+        {{3, 6}, {3, 4}}, {{4, 4}, {3, 5}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_success);
+    EXPECT_EQ(game.IsOver(), false);
+}
+
+TEST(BasicIntegration, OnPassantUndoReplay) {
+    Game game{};
+    vector<MovePair> moves = {
+        {{4, 1}, {4, 3}}, {{4, 6}, {4, 5}}, {{4, 3}, {4, 4}}, 
+        {{3, 6}, {3, 4}}, {{4, 4}, {3, 5}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_success);
+    game.UndoMove();
+    EXPECT_EQ(game.Move({4, 4}, {3, 5}), move_success);
+    EXPECT_EQ(game.IsOver(), false);
+}
+
+
+TEST(BasicIntegration, BasicOnPassantFail) {
+    Game game{};
+    vector<MovePair> moves = {
+        {{4, 1}, {4, 3}}, {{4, 6}, {4, 5}}, {{4, 3}, {4, 4}}, 
+        {{3, 6}, {3, 4}}, {{0, 1}, {0, 2}}, {{0, 6}, {0, 5}}, {{4, 4}, {3, 5}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_invalid);
+    EXPECT_EQ(game.IsOver(), false);
+}

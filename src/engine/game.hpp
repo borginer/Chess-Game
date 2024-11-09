@@ -45,16 +45,16 @@ private:
     // check if the move is legal
     bool checkMove(Square from, Square to);
     // find all possible moves for every piece
-    vector<int> possibleMoves(Square from);
+    vector<Square> possibleMoves(Square from);
     // helpers for possibleMoves
-    vector<int> possibleKnightMoves(Square from);
-    vector<int> possibleBishopMoves(Square from);
-    vector<int> possibleRookMoves(Square from);
-    vector<int> possibleQueenMoves(Square from);
-    vector<int> possibleKingMoves(Square from);
-    vector<int> possiblePawnMoves(Square from);
+    vector<Square> possibleKnightMoves(Square from);
+    vector<Square> possibleBishopMoves(Square from);
+    vector<Square> possibleRookMoves(Square from);
+    vector<Square> possibleQueenMoves(Square from);
+    vector<Square> possibleKingMoves(Square from);
+    vector<Square> possiblePawnMoves(Square from);
 
-    bool inVec(vector<int> vec, int val);
+    bool inVec(vector<Square> vec, Square val);
     // mark Square if pawn double jumped
     void markShadowPawn(Square from, Square to);
     // remove the pawn being captured en passant
@@ -62,6 +62,7 @@ private:
     // handle special interactions
     void handleEnPassant(Square from, Square to);
     void handleCastle(Square from, Square to);
+    void handlePromotion(Square from, Square to);
     // checks that the king is under attack, returns true if it isn't
     bool legalPosition();
     // checks if current turn player lost
@@ -81,9 +82,13 @@ private:
     Game();
     // checks legality 
     move_result Move(Square, Square);
-    move_result Move(int, int);
+    move_result Move(short, short);
+    move_result Move(MovePair);
+    // return result of last move executed
+    move_result MultiMoves(vector<MovePair>);
     bool IsOver();
     PieceColor WhoseTurn();
+
     void UndoMove();
 
     const array<Piece, BOARD_SIZE>& GetBoard() const {return game.Board();};

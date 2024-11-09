@@ -22,8 +22,8 @@ void Graphics::DrawGame(const Game& game) {
                       figureSize, figureSize, {220,0,0,255});
     }
 
-    for (int row = 0; row < 8; ++row) {
-        for (int col = 0; col < 8; ++col) {
+    for (short row = 0; row < 8; ++row) {
+        for (short col = 0; col < 8; ++col) {
             index = Square{col, row}.getIdx();
             p = board[index];
             if (p != EMPTY_PIECE) {

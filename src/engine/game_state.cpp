@@ -12,6 +12,12 @@ Piece::Piece(PieceColor c, Type t) {
     this->moved = false;
 }
 
+Piece::Piece(PieceColor c, Type t, bool moved) {
+    this->type = t;
+    this->color = c;
+    this->moved = moved;
+}
+
 Piece::Piece(const Piece& other) {
     this->type = other.type;
     this->color = other.color;
@@ -30,6 +36,7 @@ void GameState::set_piece(Square s, Piece p) {
 }
 
 void GameState::setup() { 
+    board = {};
     //rooks
     set_piece({7, 7}, {black, rook});
     set_piece({0, 7}, {black, rook});
@@ -52,8 +59,8 @@ void GameState::setup() {
     set_piece({4, 7}, {black, king});
     set_piece({4, 0}, {white, king});
     //pawns
-    for(int i = 0; i < 8; ++i) set_piece({i, 6}, {black, pawn});
-    for(int i = 0; i < 8; ++i) set_piece({i, 1}, {white, pawn});
+    for(short i = 0; i < 8; ++i) set_piece({i, 6}, {black, pawn});
+    for(short i = 0; i < 8; ++i) set_piece({i, 1}, {white, pawn});
 
     wKingIdx = 4;
     bKingIdx = 60;

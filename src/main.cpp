@@ -40,6 +40,10 @@ void run_game() {
                 from = {x, 7 - y};
             }
         }
+        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+            graphic.SetMarkedSquare({-1, -1});
+            piece_pressed = false;
+        }
         ClearBackground({103, 43, 0});
         graphic.DrawGame(g);
 
