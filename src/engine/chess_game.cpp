@@ -1,4 +1,4 @@
-#include "game.hpp"
+#include "chess_game.hpp"
 
 static Square knightMoves[] = {{-2, -1}, {-2, 1}, {2, -1}, {2, 1},
                                {-1, -2}, {-1, 2}, {1, -2}, {1, 2}}; 
@@ -13,19 +13,19 @@ static Square whitePawnMoves = {0, 1};
 #define queenSideMove -1
 #define squaresAmount 64
 
-move_result Game::Move(Square from, Square to) {
+move_result ChessGame::Move(Square from, Square to) {
     return doMove(from, to);
 }
 
-move_result Game::Move(short from, short to) {
+move_result ChessGame::Move(short from, short to) {
     return doMove(Square(from), Square(to));
 }
 
-move_result Game::Move(MovePair pair) {
+move_result ChessGame::Move(MovePair pair) {
     return doMove(pair.from, pair.to);
 }
 
-move_result Game::MultiMoves(vector<MovePair> moves) {
+move_result ChessGame::MultiMoves(vector<MovePair> moves) {
     move_result res;
     for (MovePair& move: moves) {
         res = doMove(move.from, move.to);
@@ -36,11 +36,10 @@ move_result Game::MultiMoves(vector<MovePair> moves) {
     return res;
 }
 
-move_result Game::doMove(Square from, Square to) {
-    //time calcs
-    auto start = chrono::high_resolution_clock::now();
-
+move_result ChessGame::doMove(Square from, Square to) {
+    Timer t("Move");
     resetGameStateCopy();
+
     if (!game_in_progress) {
         cout << "Game Ended" << endl;
         return move_game_over;
@@ -67,10 +66,6 @@ move_result Game::doMove(Square from, Square to) {
         return move_invalid;
     }
     
-    //time calcs
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double, milli> duration = (end - start);
-    cout << "Move calc time: " << duration.count() << "ms" << endl;
     if (game_in_progress) {
         return move_success; 
     } else {
@@ -79,15 +74,15 @@ move_result Game::doMove(Square from, Square to) {
 }
 
 
-bool Game::checkMove(Square from, Square to) {
+bool ChessGame::checkMove(Square from, Square to) {
     if (!game_copy.sameColor(game_copy[from].color, turn)) {
         return false;
     }
-    return inVec(possibleMoves(from), to.getIdx());
+    return inVec(possibleMoves(from), to);
 }
 
 
-vector<Square> Game::possibleMoves(Square from) {
+vector<Square> ChessGame::possibleMoves(Square from) {
     switch (game_copy[from].type) {
         case pawn:
             return possiblePawnMoves(from);
@@ -109,7 +104,7 @@ vector<Square> Game::possibleMoves(Square from) {
 }
 
 
-void Game::moveOnGameStateCopy(Square from, Square to) {
+void ChessGame::moveOnGameStateCopy(Square from, Square to) {
     switch (game_copy[from].type) {
         case pawn:
             handleEnPassant(from, to);
@@ -117,7 +112,7 @@ void Game::moveOnGameStateCopy(Square from, Square to) {
             break;
         case king:
             handleCastle(from, to);
-            game_copy.updateKingIdx(to.getIdx(), game_copy[from].color);
+            game_copy.updateKingSquare(to, game_copy[from].color);
             break;
         default:
             break;
@@ -139,7 +134,7 @@ void printMat(bool mat[]) {
 }
 
 
-bool Game::checkMate() {
+bool ChessGame::checkMate() {
     vector<Square> moves;
     for (int idx = 0; idx < squaresAmount; idx++) {
         if (game_copy[idx].color == turn) {
@@ -159,13 +154,13 @@ bool Game::checkMate() {
 }
 
 
-bool Game::legalPosition() {
+bool ChessGame::legalPosition() {
     bool blackAttackMat[64] = {false};
     bool whiteAttackMat[64] = {false};
     vector<Square> moves;
 
-    for (int idx = 0; idx < squaresAmount; idx++) {
-        moves = possibleMoves(getSquare(idx));
+    for (short idx = 0; idx < squaresAmount; idx++) {
+        moves = possibleMoves(Square{idx});
         for (Square& move : moves) {
             if (game_copy[idx].color == white) {
                 whiteAttackMat[move.getIdx()] = true;
@@ -176,8 +171,8 @@ bool Game::legalPosition() {
         }
     }
 
-    int whiteKingIdx = game_copy.getKingIdx(white);
-    int blackKingIdx = game_copy.getKingIdx(black);
+    short whiteKingIdx = game_copy.getKingSquare(white).getIdx();
+    short blackKingIdx = game_copy.getKingSquare(black).getIdx();
 
     if ((turn == black && whiteAttackMat[blackKingIdx]) || 
         (turn == white && blackAttackMat[whiteKingIdx])) {
@@ -213,7 +208,7 @@ bool Game::legalPosition() {
 }
 
 
-vector<Square> Game::possibleKnightMoves(Square from) {
+vector<Square> ChessGame::possibleKnightMoves(Square from) {
     vector<Square> ret = {};
     
     for (Square jump: knightMoves) {
@@ -227,7 +222,7 @@ vector<Square> Game::possibleKnightMoves(Square from) {
 }
 
 
-vector<Square> Game::possibleBishopMoves(Square from) {
+vector<Square> ChessGame::possibleBishopMoves(Square from) {
     Square idx;
     vector<Square> ret = {};
     
@@ -247,7 +242,7 @@ vector<Square> Game::possibleBishopMoves(Square from) {
 }
 
 
-vector<Square> Game::possibleRookMoves(Square from) {
+vector<Square> ChessGame::possibleRookMoves(Square from) {
     Square idx;
     vector<Square> ret;
     
@@ -268,7 +263,7 @@ vector<Square> Game::possibleRookMoves(Square from) {
 }
 
 
-vector<Square> Game::possibleQueenMoves(Square from) {
+vector<Square> ChessGame::possibleQueenMoves(Square from) {
     vector<Square> bishop = possibleBishopMoves(from);
     vector<Square> rook = possibleRookMoves(from);
     
@@ -278,7 +273,7 @@ vector<Square> Game::possibleQueenMoves(Square from) {
 }
 
 
-vector<Square> Game::possibleKingMoves(Square from) {
+vector<Square> ChessGame::possibleKingMoves(Square from) {
     vector<Square> ret;
     Square idx;
     
@@ -324,7 +319,7 @@ vector<Square> Game::possibleKingMoves(Square from) {
 }
 
 
-vector<Square> Game::possiblePawnMoves(Square from) {
+vector<Square> ChessGame::possiblePawnMoves(Square from) {
     vector<Square> ret;
     Square* attack = game_copy[from].color == white ? 
          whitePawnAttackMoves : blackPawnAttackMoves;
@@ -364,7 +359,7 @@ vector<Square> Game::possiblePawnMoves(Square from) {
 }
 
 
-bool Game::inVec(vector<Square> vec, Square val) {
+bool ChessGame::inVec(vector<Square> vec, Square val) {
     for (Square& idx : vec) {
         if (idx == val) { return true; }
     }
@@ -373,7 +368,7 @@ bool Game::inVec(vector<Square> vec, Square val) {
 }
 
 
-void Game::handleEnPassant(Square from, Square to) {  
+void ChessGame::handleEnPassant(Square from, Square to) {  
     if (game_copy.PawnShadow() == to) {  
         removeEnPassant(to, game_copy[from].color);
     }
@@ -381,7 +376,7 @@ void Game::handleEnPassant(Square from, Square to) {
 }
 
 
-void Game::markShadowPawn(Square from, Square to) {
+void ChessGame::markShadowPawn(Square from, Square to) {
     game_copy.SetPawnShadow({-1, -1});
 
     Square move = game_copy[from].color == white ?
@@ -393,14 +388,14 @@ void Game::markShadowPawn(Square from, Square to) {
 }
 
 
-void Game::removeEnPassant(Square to, PieceColor c) {
+void ChessGame::removeEnPassant(Square to, PieceColor c) {
     Square move = (c == white) ? whitePawnMoves : blackPawnMoves;
     Square idx = to - move;
     game_copy.set_piece(idx, {EMPTY_PIECE_COLOR, EMPTY_TYPE});
 }
 
 
-void Game::handleCastle(Square from, Square to) {
+void ChessGame::handleCastle(Square from, Square to) {
     Square rookIdx;
     king_castle = false;
     queen_castle = false;
@@ -420,67 +415,71 @@ void Game::handleCastle(Square from, Square to) {
     }
 }
 
-void Game::handlePromotion(Square from, Square to) {
+void ChessGame::handlePromotion(Square from, Square to) {
     if ((game_copy[from].color == white && to.y == 7) ||
         (game_copy[from].color == black && to.y == 0)) {
             game_copy[from].type = queen;
     }
 }
 
-Game::Game() {
-    this->turn = white;
-    this->game.setup();
-    this->game_in_progress = true;
-}
-
-void Game::commitGameState() {
+void ChessGame::commitGameState() {
     game = game_copy;
 }
 
-void Game::resetGameStateCopy() {
+void ChessGame::resetGameStateCopy() {
     game_copy = game;
 }
 
-void Game::stopGame() {
+void ChessGame::stopGame() {
     string winner = (turn == white) ? "black" : "white";
     cout << winner << " wins" << endl; 
     game_in_progress = false;
 }
 
-void Game::addMoveToHist(Square from, Square to) {
+void ChessGame::addMoveToHist(Square from, Square to) {
     this->move_hist.push_back({ from, to, game[from], game[to] });
 }
 
-void Game::printHist() {
+void ChessGame::printHist() {
     for (move_log& move: move_hist) {
         cout << move << endl;
     }
 }
 
-void Game::UndoMove() {
+void ChessGame::UndoMove() {
+    Timer t("Undo");
     if (move_hist.empty()) {
         return;
     }
     move_hist.pop_back();
 
+    vector<move_log> moves = std::move(move_hist);
+
+    reset_game();
+
+    for (const move_log& move: moves) {      
+        Move(move.from, move.to);
+    }
+    move_hist = std::move(moves);
+}
+
+bool ChessGame::IsOver() {
+    return not game_in_progress;
+}
+
+PieceColor ChessGame::WhoseTurn() {
+    return turn;
+}
+
+ChessGame::ChessGame() {
+    reset_game();
+}
+
+void ChessGame::reset_game() {
     this->turn = white;
     this->game.setup();
     this->game_in_progress = true;
     this->queen_castle = false;
     this->king_castle = false;
-
-    vector<move_log> moves = move_hist;
-    move_hist = {};
-
-    for (move_log move: moves) {
-        Move(move.from, move.to);
-    }
-}
-
-bool Game::IsOver() {
-    return not game_in_progress;
-}
-
-PieceColor Game::WhoseTurn() {
-    return turn;
+    this->move_hist = {};
 }

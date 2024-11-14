@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "raylib.h"
-#include "../engine/game.hpp"
+#include "../engine/chess_game.hpp"
 
 using namespace std;
 
@@ -20,7 +20,7 @@ const int pieces_amount = 12;
 class Graphics {
 public:
     Graphics();
-    void DrawGame(const Game &game);
+    void DrawGame(const ChessGame &game);
     void SetMarkedSquare(Square);
 
 private:

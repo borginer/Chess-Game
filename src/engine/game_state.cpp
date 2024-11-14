@@ -27,12 +27,8 @@ Piece::Piece(const Piece& other) {
 GameState::GameState() {
     this->board = array<Piece, BOARD_SIZE>();
     pawn_shadow = {-1, -1};
-    bKingIdx = -1;
-    wKingIdx = -1;
-}
-
-void GameState::set_piece(Square s, Piece p) {
-    board[s.getIdx()] = p;
+    bKingSquare = {-1, -1};
+    wKingSquare = {-1, -1};
 }
 
 void GameState::setup() { 
@@ -62,13 +58,13 @@ void GameState::setup() {
     for(short i = 0; i < 8; ++i) set_piece({i, 6}, {black, pawn});
     for(short i = 0; i < 8; ++i) set_piece({i, 1}, {white, pawn});
 
-    wKingIdx = 4;
-    bKingIdx = 60;
+    wKingSquare = {4, 0};
+    bKingSquare = {4, 7};
 }
 
-void GameState::operator=(GameState& other) {
+void GameState::operator=(const GameState& other) {
     this->SetBoard(other.Board());
-    this->updateKingIdx(other.getKingIdx(white), white);
-    this->updateKingIdx(other.getKingIdx(black), black);
+    this->updateKingSquare(other.getKingSquare(white), white);
+    this->updateKingSquare(other.getKingSquare(black), black);
     this->SetPawnShadow(other.PawnShadow());
 }

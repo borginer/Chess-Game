@@ -41,8 +41,7 @@ struct Square {
         this->x = idx % 8;
         this->y = idx / 8;
     }
-    // get index in board array
-    inline short getIdx() { return x + 8 * y; }
+    
     inline bool operator==(Square &other) {
         return this->x == other.x && this->y == other.y;
     }
@@ -73,10 +72,13 @@ struct Square {
         os << "Square: (" << s.x << "," << s.y << ")" << endl;
         return os;
     }
-    // checks indexing of input only
+    // checks wether square is on the chess boards
     inline bool onBoard() {
         return !(x < 0 || x > 7 || y < 0 || y > 7);
     }
+    // get index in board array
+    inline short getIdx() { return x + 8 * y; }
+    private:
 };
 
 struct MovePair {
@@ -110,27 +112,29 @@ struct Piece {
 class GameState {
     array<Piece, BOARD_SIZE> board;
     Square pawn_shadow = {-1, -1};
-    int bKingIdx = -1;
-    int wKingIdx = -1;
+    Square bKingSquare = {-1, -1};
+    Square wKingSquare = {-1, -1};
 
 public:
     GameState();
-    void operator=(GameState &other);
+    void operator=(const GameState &other);
     void setup();
     const array<Piece, BOARD_SIZE> &Board() const { return board; }
-    void set_piece(Square s, Piece p);
     void SetBoard(array<Piece, BOARD_SIZE> other_board) {
         board = other_board;
     }
-
     Square PawnShadow() const { return pawn_shadow; }
     void SetPawnShadow(Square s) { pawn_shadow = s; }
+    void set_piece(Square s, Piece p) { board[s.getIdx()] = p; };
 
-    inline int getKingIdx(PieceColor c) {
-        return (c == white) ? wKingIdx : bKingIdx;
+    inline bool sameColor(Square from, Square to) {
+        return board[from.getIdx()].color == board[to.getIdx()].color;
     }
-    inline void updateKingIdx(short idx, PieceColor c) {
-        int &king = (c == white) ? wKingIdx : bKingIdx;
+    inline Square getKingSquare(PieceColor c) const {
+        return (c == white) ? wKingSquare : bKingSquare;
+    }
+    inline void updateKingSquare(Square idx, PieceColor c) {
+        Square &king = (c == white) ? wKingSquare : bKingSquare;
         king = idx;
     }
     inline Piece &operator[](Square s) {
@@ -139,19 +143,7 @@ public:
     inline Piece &operator[](short idx) {
         return board[idx];
     }
-    inline bool sameColor(short from, short to) {
-        return board[from].color == board[to].color;
-    }
-    inline bool sameColor(Square from, Square to) {
-        return sameColor(from.getIdx(), to.getIdx());
-    }
-    inline bool sameColor(PieceColor p1, PieceColor p2) {
-        return p1 == p2;
-    }
+    
 };
-
-inline Square getSquare(short idx) {
-    return Square{idx};
-}
 
 #endif

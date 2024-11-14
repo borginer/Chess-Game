@@ -11,7 +11,7 @@ Graphics::Graphics(){
     this->other_textures = LoadOtherTextures(other_images);
 }
 
-void Graphics::DrawGame(const Game& game) {
+void Graphics::DrawGame(const ChessGame& game) {
     int index; 
     Piece p;
     DrawTexture(other_textures[board_txt], sideBarSize, sideBarSize, WHITE);

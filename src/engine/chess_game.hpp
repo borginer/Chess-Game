@@ -31,7 +31,7 @@ struct move_log {
     };
 };
 
-class Game{
+class ChessGame{
 private:
     GameState game;
     GameState game_copy;
@@ -39,8 +39,8 @@ private:
     vector<move_log> move_hist;
     bool game_in_progress;
     PieceColor turn;
-    bool queen_castle = false;
-    bool king_castle = false;
+    bool queen_castle;
+    bool king_castle;
 
     // check if the move is legal
     bool checkMove(Square from, Square to);
@@ -77,9 +77,10 @@ private:
         turn = turn == white ? black : white;
     }
     move_result doMove(Square, Square);
+    void reset_game();
 
     public:
-    Game();
+    ChessGame();
     // checks legality 
     move_result Move(Square, Square);
     move_result Move(short, short);
@@ -92,6 +93,21 @@ private:
     void UndoMove();
 
     const array<Piece, BOARD_SIZE>& GetBoard() const {return game.Board();};
+};
+
+struct Timer {
+    string name;
+    std::chrono::steady_clock::time_point start;
+    std::chrono::steady_clock::time_point end;
+    Timer(string name) {
+        start = chrono::high_resolution_clock::now();
+        this->name = name;
+    }
+    ~Timer() {
+        end = chrono::high_resolution_clock::now();
+        chrono::duration<double, milli> duration = (end - start);
+        cout << this->name << " calc time: " << duration.count() << "ms" << endl;
+    }
 };
 
 #endif

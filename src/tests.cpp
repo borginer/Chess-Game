@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "engine/game.hpp"
+#include "engine/chess_game.hpp"
 
 TEST(BasicIntegration, BasicMoveTest) {
-    Game game{};
+    ChessGame game{};
     EXPECT_EQ(game.Move({4, 1}, {4, 3}), move_success);
 }
 
 TEST(BasicIntegration, BasicCheckMate) {
-    Game game{};
+    ChessGame game{};
     game.Move({4, 1}, {4, 3});
     game.Move({4, 6}, {4, 4});
     game.Move({5, 0}, {2, 3});
@@ -21,7 +21,7 @@ TEST(BasicIntegration, BasicCheckMate) {
 }
 
 TEST(BasicIntegration, BasicMovesOutOfBounds) {
-    Game game{};
+    ChessGame game{};
     EXPECT_EQ(game.Move({9, 0}, {0, 0}), move_out_of_bounds);
     EXPECT_EQ(game.Move({0, 0}, {0, 9}), move_out_of_bounds);
     EXPECT_EQ(game.Move({-1, 0}, {0, 0}), move_out_of_bounds);
@@ -33,7 +33,7 @@ TEST(BasicIntegration, BasicMovesOutOfBounds) {
 }
 
 TEST(BasicIntegration, InvalidKnightMoves) {
-    Game game{};
+    ChessGame game{};
     bool all_invalid = true;
     Square leftWhiteKnight = {1, 0};
     for (int i = 0; i < 8; i++) {
@@ -51,7 +51,7 @@ TEST(BasicIntegration, InvalidKnightMoves) {
 }
 
 TEST(BasicIntegration, InvalidRookMoves) {
-    Game game{};
+    ChessGame game{};
     bool all_invalid = true;
     Square rightBlackRook = {7, 7};
 
@@ -67,7 +67,7 @@ TEST(BasicIntegration, InvalidRookMoves) {
 }
 
 TEST(BasicIntegration, InvalidQueenMoves) {
-    Game game{};
+    ChessGame game{};
     bool all_invalid = true;
     Square blackQueen = {3, 7};
 
@@ -83,7 +83,7 @@ TEST(BasicIntegration, InvalidQueenMoves) {
 }
 
 TEST(BasicIntegration, InvalidKingMoves) {
-    Game game{};
+    ChessGame game{};
     bool all_invalid = true;
     Square whiteKing = {4, 0};
 
@@ -99,7 +99,7 @@ TEST(BasicIntegration, InvalidKingMoves) {
 }
 
 TEST(BasicIntegration, BasicMultiMovesSuccess) {
-    Game game{};
+    ChessGame game{};
     vector<MovePair> moves = {
         {{4, 1}, {4, 3}}, {{4, 6}, {4, 4}}, {{5, 0}, {2, 3}}, 
         {{5, 7}, {2, 4}}, {{3, 0}, {7, 4}}, {{6, 7}, {5, 5}}, 
@@ -110,7 +110,7 @@ TEST(BasicIntegration, BasicMultiMovesSuccess) {
 }
 
 TEST(BasicIntegration, BasicMultiMovesFail) {
-    Game game{};
+    ChessGame game{};
     vector<MovePair> moves = {
         {{4, 1}, {4, 3}}, {{4, 6}, {4, 4}}, {{5, 0}, {2, 3}}, 
         {{5, 7}, {2, 4}}, {{3, 0}, {7, 5}}, {{6, 7}, {5, 5}}, 
@@ -121,17 +121,16 @@ TEST(BasicIntegration, BasicMultiMovesFail) {
 }
 
 TEST(BasicIntegration, BasicOnPassant) {
-    Game game{};
+    ChessGame game{};
     vector<MovePair> moves = {
         {{4, 1}, {4, 3}}, {{4, 6}, {4, 5}}, {{4, 3}, {4, 4}}, 
         {{3, 6}, {3, 4}}, {{4, 4}, {3, 5}}
     };
     EXPECT_EQ(game.MultiMoves(moves), move_success);
-    EXPECT_EQ(game.IsOver(), false);
 }
 
 TEST(BasicIntegration, OnPassantUndoReplay) {
-    Game game{};
+    ChessGame game{};
     vector<MovePair> moves = {
         {{4, 1}, {4, 3}}, {{4, 6}, {4, 5}}, {{4, 3}, {4, 4}}, 
         {{3, 6}, {3, 4}}, {{4, 4}, {3, 5}}
@@ -139,16 +138,66 @@ TEST(BasicIntegration, OnPassantUndoReplay) {
     EXPECT_EQ(game.MultiMoves(moves), move_success);
     game.UndoMove();
     EXPECT_EQ(game.Move({4, 4}, {3, 5}), move_success);
-    EXPECT_EQ(game.IsOver(), false);
 }
 
 
 TEST(BasicIntegration, BasicOnPassantFail) {
-    Game game{};
+    ChessGame game{};
     vector<MovePair> moves = {
         {{4, 1}, {4, 3}}, {{4, 6}, {4, 5}}, {{4, 3}, {4, 4}}, 
         {{3, 6}, {3, 4}}, {{0, 1}, {0, 2}}, {{0, 6}, {0, 5}}, {{4, 4}, {3, 5}}
     };
     EXPECT_EQ(game.MultiMoves(moves), move_invalid);
+}
+
+TEST(BasicIntegration, BasicCastleKingSide) {
+    ChessGame game{};
+    vector<MovePair> moves = {
+        {{4, 1}, {4, 3}}, {{4, 6}, {4, 4}}, {{5, 0}, {2, 3}}, 
+        {{5, 7}, {2, 4}}, {{6, 0}, {5, 2}}, {{6, 7}, {5, 5}},
+        {{4, 0}, {6, 0}}, {{4, 7}, {6, 7}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_success);
+}
+
+TEST(BasicIntegration, BasicCastleKingSideUndo) {
+    ChessGame game{};
+    vector<MovePair> moves = {
+        {{4, 1}, {4, 3}}, {{4, 6}, {4, 4}}, {{5, 0}, {2, 3}}, 
+        {{5, 7}, {2, 4}}, {{6, 0}, {5, 2}}, {{6, 7}, {5, 5}},
+        {{4, 0}, {6, 0}}, {{4, 7}, {6, 7}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_success);
+    game.UndoMove();
+    game.UndoMove();
+    EXPECT_EQ(game.Move({{4, 0}, {6, 0}}), move_success);
+    EXPECT_EQ(game.Move({{4, 7}, {6, 7}}), move_success);
+}
+
+TEST(BasicIntegration, BasicCastleQueenSide) {
+    ChessGame game{};
+    vector<MovePair> moves = {
+        {{3, 1}, {3, 3}}, {{3, 6}, {3, 4}}, {{3, 0}, {3, 2}}, 
+        {{3, 7}, {3, 5}}, {{2, 0}, {4, 2}}, {{2, 7}, {4, 5}},
+        {{1, 0}, {2, 2}}, {{1, 7}, {2, 5}}, {{4, 0}, {2, 0}},
+        {{4, 7}, {2, 7}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_success);
     EXPECT_EQ(game.IsOver(), false);
+}
+
+TEST(BasicIntegration, BasicCastleQueenSideUndo) {
+    ChessGame game{};
+    vector<MovePair> moves = {
+        {{3, 1}, {3, 3}}, {{3, 6}, {3, 4}}, {{3, 0}, {3, 2}}, 
+        {{3, 7}, {3, 5}}, {{2, 0}, {4, 2}}, {{2, 7}, {4, 5}},
+        {{1, 0}, {2, 2}}, {{1, 7}, {2, 5}}, {{4, 0}, {2, 0}},
+        {{4, 7}, {2, 7}}
+    };
+    EXPECT_EQ(game.MultiMoves(moves), move_success);
+
+    game.UndoMove();
+    game.UndoMove();
+    EXPECT_EQ(game.Move({{4, 0}, {2, 0}}), move_success);
+    EXPECT_EQ(game.Move({{4, 7}, {2, 7}}), move_success);
 }

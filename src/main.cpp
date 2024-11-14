@@ -2,7 +2,7 @@
 #include <vector>
 #include <cmath>
 
-#include "engine/game.hpp"
+#include "engine/chess_game.hpp"
 #include "interface/graphics.hpp"
 
 using std::vector;
@@ -10,7 +10,7 @@ using std::vector;
 void run_game() {
     InitWindow(screenWidth, screenHeight, "Chess Simulator");
 
-    Game g{};
+    ChessGame g{};
     Graphics graphic{};
 
     bool piece_pressed = false;
@@ -18,7 +18,7 @@ void run_game() {
     int x, y;
 
     SetTargetFPS(60);
-    // Main Game Loop
+    // Main ChessGame Loop
     while (!WindowShouldClose()) {
         BeginDrawing();
 
@@ -55,5 +55,3 @@ void run_game() {
 int main() {
     run_game();
 }
-
-
