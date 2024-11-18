@@ -1,5 +1,4 @@
-#ifndef BOARD_HPP
-#define BOARD_HPP
+#pragma once 
 
 #define BOARD_SIZE 64
 
@@ -145,5 +144,3 @@ public:
     }
     
 };
-
-#endif

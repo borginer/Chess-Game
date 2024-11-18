@@ -1,9 +1,5 @@
-#ifndef GAME_HPP
-#define GAME_HPP
+#pragma once
 
-#include <vector>
-#include <iostream>
-#include <array>
 #include <string>
 #include <chrono>
 
@@ -109,5 +105,3 @@ struct Timer {
         cout << this->name << " calc time: " << duration.count() << "ms" << endl;
     }
 };
-
-#endif

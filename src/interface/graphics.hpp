@@ -1,5 +1,4 @@
-#ifndef GRAPHICS_HPP
-#define GRAPHICS_HPP
+#pragma once
 
 #include <map>
 #include <vector>
@@ -43,5 +42,3 @@ private:
         return marked.x > -1 && marked.y > -1;
     }
 };
-
-#endif

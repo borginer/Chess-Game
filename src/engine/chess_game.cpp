@@ -49,7 +49,7 @@ move_result ChessGame::doMove(Square from, Square to) {
         return move_out_of_bounds;
     }
     if (from == to || !checkMove(from, to)) {
-        std::cout << "Invalid Move" << std::endl;
+        // std::cout << "Invalid Move" << std::endl;
         return move_invalid;
     }
     moveOnGameStateCopy(from, to);
@@ -75,7 +75,7 @@ move_result ChessGame::doMove(Square from, Square to) {
 
 
 bool ChessGame::checkMove(Square from, Square to) {
-    if (!game_copy.sameColor(game_copy[from].color, turn)) {
+    if (game_copy[from].color != turn) {
         return false;
     }
     return inVec(possibleMoves(from), to);

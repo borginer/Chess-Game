@@ -8,11 +8,14 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 find_package(raylib REQUIRED)
 find_package(websocketpp REQUIRED)
+find_package(nlohmann_json 3.11.2 REQUIRED)
 cmake_policy(SET CMP0167 NEW)
 find_package(Boost REQUIRED system thread)
 
 include_directories("${PROJECT_BINARY_DIR}" websocketpp)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall") # add -O3 later
+# add -O3 later, g0 to not generate debug symbols
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -g0") 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl")
 
 # source dirs
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
@@ -53,9 +56,20 @@ else()
     message(WARNING "Google Test not found. Not building tests")
 endif()
 
+
 add_executable(game_server ${ENGINE_SOURCES} src/server/game_server.cpp)
 target_include_directories(game_server PUBLIC ${ENGINE_DIR} 
     ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR})
 
 find_package(Boost REQUIRED COMPONENTS system)
-target_link_libraries(game_server Boost::system pthread)
+target_link_libraries(game_server Boost::system 
+    pthread nlohmann_json::nlohmann_json)
+
+
+add_executable(game_client ${ALL_SOURCES} src/server/game_client.cpp)
+target_include_directories(game_client PUBLIC ${SRC_DIR} 
+    ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR} ${RAYLIB_INCLUDE_DIR})
+
+find_package(Boost REQUIRED COMPONENTS system)
+target_link_libraries(game_client Boost::system 
+    pthread nlohmann_json::nlohmann_json raylib)
