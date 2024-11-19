@@ -21,10 +21,12 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(ENGINE_DIR "${SRC_DIR}/engine")
 set(INTERFACE_DIR "${SRC_DIR}/interface")
+set(NETWORK_DIR "${SRC_DIR}/network")
 
 # find all .cpp files in engine and interface directories
 file(GLOB ENGINE_SOURCES "${ENGINE_DIR}/*.cpp")
 file(GLOB INTERFACE_SOURCES "${INTERFACE_DIR}/*.cpp")
+file(GLOB NETWORK_SOURCES "${NETWORK_DIR}/*.cpp")
 
 
 set(ALL_SOURCES ${ENGINE_SOURCES} ${INTERFACE_SOURCES})
@@ -57,7 +59,8 @@ else()
 endif()
 
 
-add_executable(game_server ${ENGINE_SOURCES} src/network/game_server.cpp)
+add_executable(game_server ${ENGINE_SOURCES} src/network/game_prot.cpp 
+    src/network/game_server.cpp)
 target_include_directories(game_server PUBLIC ${ENGINE_DIR} 
     ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR})
 
@@ -66,7 +69,8 @@ target_link_libraries(game_server Boost::system
     pthread nlohmann_json::nlohmann_json)
 
 
-add_executable(game_client ${ALL_SOURCES} src/network/game_client.cpp)
+add_executable(game_client ${ENGINE_SOURCES} ${INTERFACE_SOURCES} 
+    src/network/game_prot.cpp src/network/game_client.cpp)
 target_include_directories(game_client PUBLIC ${SRC_DIR} 
     ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR} ${RAYLIB_INCLUDE_DIR})
 

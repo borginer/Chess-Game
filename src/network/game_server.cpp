@@ -18,20 +18,13 @@ void message_handler(server* serv, connection_hdl hdl,
     cout << "Received: " << input << endl;
 
     json j_move = json::parse(input);
-
-    Square from = { j_move["from.x"], j_move["from.y"] };
-    Square to = { j_move["to.x"], j_move["to.y"] };
+    game_prot::do_move_info info = game_prot::parse_do_move(j_move);
     
-    int res = game->Move(from, to);
+    move_result res = game->Move(info.from, info.to);
     string server_resp{std::to_string(res)};
     // respond with game move code
-    json j_resp;
-    j_resp["type"] = "move_response";
-    j_resp["res"] = res;
-    j_resp["from.x"] = from.x;
-    j_resp["from.y"] = from.y;
-    j_resp["to.x"] = to.x;
-    j_resp["to.y"] = to.y;
+    json j_resp = game_prot::do_move_resp_json(info.from, info.to, res);
+
     for (connection_hdl chdl: players) {
         serv->send(chdl, j_resp.dump(), wspp::frame::opcode::text);
     }

@@ -4,6 +4,8 @@ Piece EMPTY_PIECE = Piece{EMPTY_PIECE_COLOR, EMPTY_TYPE};
 
 #define PATH_TO_ROOT "../"
 
+using namespace std;
+
 Graphics::Graphics(){
     vector<Image> piece_images = LoadPieceImages();
     this->piece_textures = LoadPieceTextures(piece_images);

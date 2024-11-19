@@ -6,6 +6,7 @@
 
 #include <functional>
 
+#include "game_prot.hpp"
 #include "../engine/chess_game.hpp"
 
 namespace wspp = websocketpp;

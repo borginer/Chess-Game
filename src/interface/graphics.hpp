@@ -6,8 +6,6 @@
 #include "raylib.h"
 #include "../engine/chess_game.hpp"
 
-using namespace std;
-
 const int boardSize = 800;
 const int sideBarSize = 20;
 const int screenWidth = boardSize + 2 * sideBarSize;
