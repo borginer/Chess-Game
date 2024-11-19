@@ -19,7 +19,7 @@ const int pieces_amount = 12;
 class Graphics {
 public:
     Graphics();
-    void DrawGame(const ChessGame &game);
+    void DrawGame(const ChessGame &game, PieceColor color);
     void SetMarkedSquare(Square);
 
 private:

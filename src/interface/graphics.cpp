@@ -11,7 +11,7 @@ Graphics::Graphics(){
     this->other_textures = LoadOtherTextures(other_images);
 }
 
-void Graphics::DrawGame(const ChessGame& game) {
+void Graphics::DrawGame(const ChessGame& game, PieceColor color) {
     int index; 
     Piece p;
     DrawTexture(other_textures[board_txt], sideBarSize, sideBarSize, WHITE);
@@ -26,11 +26,23 @@ void Graphics::DrawGame(const ChessGame& game) {
         for (short col = 0; col < 8; ++col) {
             index = Square{col, row}.getIdx();
             p = board[index];
+            int xpos, ypos;
+            switch (color) {
+                case white:
+                xpos = sideBarSize + col * figureSize;
+                ypos = sideBarSize + boardSize - (row + 1) * figureSize;
+                break;
+                case black:
+                xpos = sideBarSize + boardSize - (col + 1) * figureSize;
+                ypos = sideBarSize + row * figureSize;
+                break;
+                default:
+                throw(1); // placeholder
+            }
+
             if (p != EMPTY_PIECE) {
                 DrawTexture(piece_textures[PieceIdx(p.color, p.type)], 
-                            sideBarSize + col * figureSize,
-                            boardSize + sideBarSize - figureSize -
-                             row * figureSize, WHITE);
+                    xpos, ypos, WHITE);
             }
         }
     }

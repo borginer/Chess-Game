@@ -1,22 +1,4 @@
-#include "raylib.h"
-#include <vector>
-#include <cmath>
-#include <functional>
-
-#include <websocketpp/config/asio_no_tls_client.hpp>
-#include <websocketpp/client.hpp>
-#include <nlohmann/json.hpp>
-
-#include "../engine/chess_game.hpp"
-#include "../interface/graphics.hpp"
-
-namespace wspp = websocketpp;
-using std::vector;
-using client = wspp::client<websocketpp::config::asio_client>;
-using wspp::connection_hdl;
-using msg_ptr = client::message_ptr;
-using std::cout, std::cerr, std::endl;
-using json = nlohmann::json;
+#include "game_client.hpp"
 
 static client c;
 static ChessGame g{};
@@ -34,8 +16,10 @@ void on_message(connection_hdl, msg_ptr msg) {
     json j_move = json::parse(input);
 
     if (j_move["res"] == move_success) {
+        cout << "successful move" << endl;
         Square from = { j_move["from.x"], j_move["from.y"] };
         Square to = { j_move["to.x"], j_move["to.y"] };
+        cout << from << to << endl;
         g.Move(from, to);
     }
     
@@ -45,10 +29,9 @@ void on_close(client*, connection_hdl) {
     std::cout << "Connection closed." << std::endl;
 }
 
-
-void run_game() {
+void run_game(PieceColor perspective) {
     InitWindow(screenWidth, screenHeight, "Chess Simulator");
-
+    
     Graphics graphic{};
 
     bool piece_pressed = false;
@@ -75,14 +58,38 @@ void run_game() {
                 j_move["type"] = "move";
                 j_move["from.x"] = from.x;
                 j_move["from.y"] = from.y;
-                j_move["to.x"] = x;
-                j_move["to.y"] = 7 - y;
-                c.send(hdl, j_move.dump(), wspp::frame::opcode::text);
+                
+                switch (perspective) {
+                    case white:
+                    j_move["to.x"] = x;
+                    j_move["to.y"] = 7 - y;
+                    break;
+                    case black:
+                    j_move["to.x"] = 7 - x;
+                    j_move["to.y"] = y;
+                    // cout << from << Square{7 - x, y} << endl;
+                    break;
+                    default:
+                    throw (1);
+                }
+
+                c.send(hdl, j_move.dump(), wspp::frame::opcode::text);                
             }
             else {
                 piece_pressed = true;
                 graphic.SetMarkedSquare({x, y});
-                from = {x, 7 - y};
+                
+                switch (perspective) {
+                    case white:
+                    from = {x, 7 - y};
+                    break;
+                    case black:
+                    from = {7 - x, y};
+                    // cout << from << endl;
+                    break;
+                    default:
+                    throw (1);
+                }
             }
         }
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
@@ -90,14 +97,83 @@ void run_game() {
             piece_pressed = false;
         }
         ClearBackground({103, 43, 0});
-        graphic.DrawGame(g);
+        graphic.DrawGame(g, perspective);
 
         EndDrawing();
     }
     CloseWindow();
 }
 
-int main() {
+// void run_game() {
+//     InitWindow(screenWidth, screenHeight, "Chess Simulator");
+
+//     Graphics graphic{};
+
+//     bool piece_pressed = false;
+//     Square from;
+//     int x, y;
+
+//     SetTargetFPS(60);
+//     // Main ChessGame Loop
+//     while (!WindowShouldClose()) {
+//         BeginDrawing();
+
+//         if (IsKeyPressed(KEY_U)) {
+//             g.UndoMove();
+//         }
+//         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+//             Vector2 pos = GetMousePosition();
+//             x = std::floor((pos.x - sideBarSize) / figureSize);
+//             y = std::floor((pos.y - sideBarSize) / figureSize);
+//             if (piece_pressed) {
+//                 piece_pressed = false;
+//                 graphic.SetMarkedSquare({-1, -1});
+
+//                 json j_move;
+//                 j_move["type"] = "move";
+//                 j_move["from.x"] = from.x;
+//                 j_move["from.y"] = from.y;
+//                 j_move["to.x"] = x;
+//                 j_move["to.y"] = 7 - y;
+//                 c.send(hdl, j_move.dump(), wspp::frame::opcode::text);
+//             }
+//             else {
+//                 piece_pressed = true;
+//                 graphic.SetMarkedSquare({x, y});
+//                 from = {x, 7 - y};
+//             }
+//         }
+//         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+//             graphic.SetMarkedSquare({-1, -1});
+//             piece_pressed = false;
+//         }
+//         ClearBackground({103, 43, 0});
+//         graphic.DrawGame(g, white);
+
+//         EndDrawing();
+//     }
+//     CloseWindow();
+// }
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cerr << "invalid arguments" << endl;
+        exit(-1);
+    }
+
+    string color = argv[1];
+    PieceColor perspective;
+    cout << color << endl;
+    if (color == "white") { 
+        perspective = white; 
+    } else if (color == "black") { 
+        perspective = black; 
+    } else {
+        cerr << "no color given" << endl;
+        exit(-2);
+    }
+    cout << perspective << endl;
+
     // suppress raylib logs
     SetTraceLogLevel(LOG_NONE);
     try {
@@ -132,5 +208,5 @@ int main() {
         std::cerr << "Unknown exception." << std::endl;
     }
 
-    run_game();
+    run_game(perspective);
 }

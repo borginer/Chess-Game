@@ -57,7 +57,7 @@ else()
 endif()
 
 
-add_executable(game_server ${ENGINE_SOURCES} src/server/game_server.cpp)
+add_executable(game_server ${ENGINE_SOURCES} src/network/game_server.cpp)
 target_include_directories(game_server PUBLIC ${ENGINE_DIR} 
     ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR})
 
@@ -66,7 +66,7 @@ target_link_libraries(game_server Boost::system
     pthread nlohmann_json::nlohmann_json)
 
 
-add_executable(game_client ${ALL_SOURCES} src/server/game_client.cpp)
+add_executable(game_client ${ALL_SOURCES} src/network/game_client.cpp)
 target_include_directories(game_client PUBLIC ${SRC_DIR} 
     ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR} ${RAYLIB_INCLUDE_DIR})
 

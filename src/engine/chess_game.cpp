@@ -49,7 +49,7 @@ move_result ChessGame::doMove(Square from, Square to) {
         return move_out_of_bounds;
     }
     if (from == to || !checkMove(from, to)) {
-        // std::cout << "Invalid Move" << std::endl;
+        std::cout << "Invalid Move" << std::endl;
         return move_invalid;
     }
     moveOnGameStateCopy(from, to);

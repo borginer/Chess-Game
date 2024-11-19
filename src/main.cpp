@@ -7,7 +7,7 @@
 
 using std::vector;
 
-void run_game() {
+void run_game(PieceColor perspective) {
     InitWindow(screenWidth, screenHeight, "Chess Simulator");
 
     ChessGame g{};
@@ -32,12 +32,35 @@ void run_game() {
             if (piece_pressed) {
                 piece_pressed = false;
                 graphic.SetMarkedSquare({-1, -1});
-                g.Move(from, {x, 7 - y});
+
+                switch (perspective) {
+                    case white:
+                    g.Move(from, {x, 7 - y});
+                    break;
+                    case black:
+                    g.Move(from, {7 - x, y});
+                    // cout << from << Square{7 - x, y} << endl;
+                    break;
+                    default:
+                    throw (1);
+                }
+                
             }
             else {
                 piece_pressed = true;
                 graphic.SetMarkedSquare({x, y});
-                from = {x, 7 - y};
+                
+                switch (perspective) {
+                    case white:
+                    from = {x, 7 - y};
+                    break;
+                    case black:
+                    from = {7 - x, y};
+                    // cout << from << endl;
+                    break;
+                    default:
+                    throw (1);
+                }
             }
         }
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
@@ -45,13 +68,30 @@ void run_game() {
             piece_pressed = false;
         }
         ClearBackground({103, 43, 0});
-        graphic.DrawGame(g);
+        graphic.DrawGame(g, perspective);
 
         EndDrawing();
     }
     CloseWindow();
 }
 
-int main() {
-    run_game();
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cerr << "invalid arguments" << endl;
+        exit(-1);
+    }
+
+    string color = argv[1];
+    PieceColor perspective;
+    cout << color << endl;
+    if (color == "white") { 
+        perspective = white; 
+    } else if (color == "black") { 
+        perspective = black; 
+    } else {
+        cerr << "no color given" << endl;
+        exit(-2);
+    }
+    cout << perspective << endl;
+    run_game(perspective);
 }

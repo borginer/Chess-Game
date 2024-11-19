@@ -5,6 +5,12 @@
 using std::cout, std::cerr, std::endl;
 using json = nlohmann::json;
 
+static vector<connection_hdl> players;
+
+void open_handler(connection_hdl hdl) {
+    players.push_back(hdl);
+}
+
 void message_handler(server* serv, connection_hdl hdl,
     msg_ptr msg, ChessGame* game) {
         
@@ -26,7 +32,9 @@ void message_handler(server* serv, connection_hdl hdl,
     j_resp["from.y"] = from.y;
     j_resp["to.x"] = to.x;
     j_resp["to.y"] = to.y;
-    serv->send(hdl, j_resp.dump(), wspp::frame::opcode::text);
+    for (connection_hdl chdl: players) {
+        serv->send(chdl, j_resp.dump(), wspp::frame::opcode::text);
+    }
 }
 
 GameServer::GameServer(int port) : serv{}, game{} {
@@ -43,6 +51,8 @@ void GameServer::run() {
         serv.set_message_handler([this](connection_hdl hdl, msg_ptr msg) {
             message_handler(&this->serv, hdl, msg, &this->game);
         });
+
+        serv.set_open_handler(std::bind(open_handler, std::placeholders::_1));
 
         serv.init_asio();
         serv.listen(port);
