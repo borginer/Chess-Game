@@ -37,7 +37,7 @@ move_result ChessGame::MultiMoves(vector<MovePair> moves) {
 }
 
 move_result ChessGame::doMove(Square from, Square to) {
-    Timer t("Move");
+    // Timer t("Move");
     resetGameStateCopy();
 
     if (!game_in_progress) {
@@ -447,7 +447,7 @@ void ChessGame::printHist() {
 }
 
 void ChessGame::UndoMove() {
-    Timer t("Undo");
+    // Timer t("Undo");
     if (move_hist.empty()) {
         return;
     }

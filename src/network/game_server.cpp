@@ -2,8 +2,13 @@
 
 #include "game_server.hpp"
 
+namespace wspp = websocketpp;
+
 using std::cout, std::cerr, std::endl;
 using json = nlohmann::json;
+using server = wspp::server<websocketpp::config::asio>;
+using msg_ptr = wspp::config::asio::message_type::ptr;
+using connection_hdl = wspp::connection_hdl;
 
 static vector<connection_hdl> players;
 
@@ -59,11 +64,4 @@ void GameServer::run() {
     } catch (...) {
         cerr << "Unknown Error" << endl;
     }
-}
-int main() {
-    GameServer serv{12345};
-    serv.turn_off_logging();
-    serv.run();
-
-    return 0;
 }

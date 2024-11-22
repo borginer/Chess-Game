@@ -1,4 +1,5 @@
 #include "graphics.hpp"
+#include <filesystem>
 
 Piece EMPTY_PIECE = Piece{EMPTY_PIECE_COLOR, EMPTY_TYPE};
 
@@ -7,6 +8,7 @@ Piece EMPTY_PIECE = Piece{EMPTY_PIECE_COLOR, EMPTY_TYPE};
 using namespace std;
 
 Graphics::Graphics(){
+    cout << "building graphics" << endl;
     vector<Image> piece_images = LoadPieceImages();
     this->piece_textures = LoadPieceTextures(piece_images);
     vector<Image> other_images = LoadOtherImages();

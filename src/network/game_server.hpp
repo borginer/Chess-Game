@@ -9,15 +9,8 @@
 #include "game_prot.hpp"
 #include "../engine/chess_game.hpp"
 
-namespace wspp = websocketpp;
-
-using server = wspp::server<websocketpp::config::asio>;
-using msg_ptr = wspp::config::asio::message_type::ptr;
-using connection_hdl = wspp::connection_hdl;
-void message_handler(server*, connection_hdl, msg_ptr, ChessGame*);
-
 class GameServer {
-    server serv;
+    websocketpp::server<websocketpp::config::asio> serv;
     ChessGame game;
     int port;
     public:

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "engine/chess_game.hpp"
+#include "../engine/chess_game.hpp"
 
 TEST(BasicIntegration, BasicMoveTest) {
     ChessGame game{};

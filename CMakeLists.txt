@@ -29,15 +29,16 @@ file(GLOB INTERFACE_SOURCES "${INTERFACE_DIR}/*.cpp")
 file(GLOB NETWORK_SOURCES "${NETWORK_DIR}/*.cpp")
 
 
-set(ALL_SOURCES ${ENGINE_SOURCES} ${INTERFACE_SOURCES})
+set(ALL_SOURCES ${ENGINE_SOURCES} ${INTERFACE_SOURCES} ${NETWORK_SOURCES})
 
 set(RAYLIB_INCLUDE_DIR "/opt/homebrew/include")
 set(RAYLIB_LIB_DIR "/opt/homebrew/lib")
 set(WEBSOCKETPP_INCLUDE_DIR "/opt/homebrew/include")
 
-add_executable(chess ${ALL_SOURCES} src/main.cpp)
-target_include_directories(chess PUBLIC ${SRC_DIR} ${PROJECT_BINARY_DIR}
-    ${RAYLIB_INCLUDE_DIR})
+add_executable(chess ${ENGINE_SOURCES} ${INTERFACE_SOURCES} 
+    src/local_main.cpp)
+target_include_directories(chess PUBLIC ${ENGINE_DIR} 
+    ${INTERFACE_DIR} ${PROJECT_BINARY_DIR} ${RAYLIB_INCLUDE_DIR})
 target_link_libraries(chess raylib)
 
 
@@ -45,7 +46,7 @@ find_package(GTest REQUIRED)
 if(GTest_FOUND)
     enable_testing()
 
-    add_executable(engine_tests ${ENGINE_SOURCES} src/tests.cpp)
+    add_executable(engine_tests ${ENGINE_SOURCES} src/tests/engine_tests.cpp)
     target_include_directories(engine_tests PUBLIC ${SRC_DIR} ${PROJECT_BINARY_DIR})
     target_link_libraries(engine_tests GTest::GTest GTest::Main)
 
@@ -58,22 +59,19 @@ else()
     message(WARNING "Google Test not found. Not building tests")
 endif()
 
-
-add_executable(game_server ${ENGINE_SOURCES} src/network/game_prot.cpp 
-    src/network/game_server.cpp)
-target_include_directories(game_server PUBLIC ${ENGINE_DIR} 
-    ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR})
-
 find_package(Boost REQUIRED COMPONENTS system)
+
+add_executable(game_server ${ENGINE_SOURCES} ${NETWORK_SOURCES} 
+    src/network/game_prot.cpp src/server_main.cpp)
+target_include_directories(game_server PUBLIC ${ENGINE_DIR} ${NETWORK_DIR} 
+    ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR})
 target_link_libraries(game_server Boost::system 
     pthread nlohmann_json::nlohmann_json)
 
 
-add_executable(game_client ${ENGINE_SOURCES} ${INTERFACE_SOURCES} 
-    src/network/game_prot.cpp src/network/game_client.cpp)
-target_include_directories(game_client PUBLIC ${SRC_DIR} 
+add_executable(game_client ${ALL_SOURCES} 
+    src/network/game_prot.cpp src/client_main.cpp)
+target_include_directories(game_client PUBLIC ${ENGINE_DIR} ${NETWORK_DIR} 
     ${WEBSOCKETPP_INCLUDE_DIR} ${PROJECT_BINARY_DIR} ${RAYLIB_INCLUDE_DIR})
-
-find_package(Boost REQUIRED COMPONENTS system)
 target_link_libraries(game_client Boost::system 
     pthread nlohmann_json::nlohmann_json raylib)
